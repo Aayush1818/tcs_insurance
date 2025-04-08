@@ -1,0 +1,125 @@
+<div class="container mt-4">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h2>Insurance Claims</h2>
+    <button class="btn btn-primary" (click)="openNewClaimForm()">
+      <i class="bi bi-plus-circle"></i> Add Claim
+    </button>
+  </div>
+
+  <!-- Claims Table -->
+  <div class="table-responsive">
+    <table class="table table-striped table-hover">
+      <thead>
+        <tr>
+          <th class="text-dark">Policy ID</th>
+          <th class="text-dark">Hospital ID</th>
+          <th class="text-dark">Remarks</th>
+          <th class="text-dark">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let claim of claims">
+          <td>{{claim.policy_id}}</td>
+          <td>{{claim.hospital_id}}</td>
+          <td>{{claim.remarks}}</td>
+          <td>
+            <button class="btn btn-sm btn-info me-2" (click)="viewClaimDetails(claim)">
+              <i class="bi bi-eye"></i> View
+            </button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- New Claim Form Modal -->
+  <div class="modal" id="newClaimModal" tabindex="-1" role="dialog" aria-labelledby="newClaimModalLabel" aria-hidden="true" *ngIf="showNewClaimForm">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header bg-primary text-white">
+          <h5 class="modal-title" id="newClaimModalLabel">Add Insurance Claim</h5>
+          <button type="button" class="btn-close btn-close-white" (click)="closeNewClaimForm()"></button>
+        </div>
+        <div class="modal-body">
+          <form [formGroup]="claimForm" (ngSubmit)="addClaim()">
+            <div class="form-group mb-3">
+              <label for="policy_id" class="form-label">Policy ID <span class="text-danger">*</span></label>
+              <input type="number" 
+                     class="form-control" 
+                     id="policy_id" 
+                     formControlName="policy_id"
+                     placeholder="Enter policy ID"
+                     [class.is-invalid]="isFieldInvalid('policy_id')">
+              <div class="invalid-feedback" *ngIf="isFieldInvalid('policy_id')">
+                {{getErrorMessage('policy_id')}}
+              </div>
+              <small class="form-text text-muted">Enter the ID of the policy associated with this claim</small>
+            </div>
+
+            <div class="form-group mb-3">
+              <label for="hospital_id" class="form-label">Hospital ID <span class="text-danger">*</span></label>
+              <input type="number" 
+                     class="form-control" 
+                     id="hospital_id" 
+                     formControlName="hospital_id"
+                     placeholder="Enter hospital ID"
+                     [class.is-invalid]="isFieldInvalid('hospital_id')">
+              <div class="invalid-feedback" *ngIf="isFieldInvalid('hospital_id')">
+                {{getErrorMessage('hospital_id')}}
+              </div>
+              <small class="form-text text-muted">Enter the ID of the hospital where treatment was received</small>
+            </div>
+
+            <div class="form-group mb-3">
+              <label for="remarks" class="form-label">Remarks <span class="text-danger">*</span></label>
+              <textarea class="form-control" 
+                        id="remarks" 
+                        formControlName="remarks" 
+                        rows="3"
+                        placeholder="Enter claim remarks"
+                        [class.is-invalid]="isFieldInvalid('remarks')"></textarea>
+              <div class="invalid-feedback" *ngIf="isFieldInvalid('remarks')">
+                {{getErrorMessage('remarks')}}
+              </div>
+              <small class="form-text text-muted">Provide details about the claim (minimum 3 characters)</small>
+            </div>
+
+            <div class="text-end">
+              <button type="button" class="btn btn-secondary me-2" (click)="closeNewClaimForm()" [disabled]="isSubmitting">Cancel</button>
+              <button type="submit" class="btn btn-primary" [disabled]="claimForm.invalid || isSubmitting">
+                <span *ngIf="isSubmitting" class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span>
+                {{ isSubmitting ? 'Submitting...' : 'Submit Claim' }}
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Claim Details Modal -->
+  <div class="modal" id="claimDetailsModal" tabindex="-1" role="dialog" aria-labelledby="claimDetailsModalLabel" aria-hidden="true" *ngIf="selectedClaim">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header bg-info text-white">
+          <h5 class="modal-title" id="claimDetailsModalLabel">Claim Details</h5>
+          <button type="button" class="btn-close btn-close-white" (click)="closeClaimDetailsModal()"></button>
+        </div>
+        <div class="modal-body" *ngIf="selectedClaim">
+          <div class="mb-3">
+            <strong>Policy ID:</strong>
+            <p class="mb-0">{{selectedClaim.policy_id}}</p>
+          </div>
+          <div class="mb-3">
+            <strong>Hospital ID:</strong>
+            <p class="mb-0">{{selectedClaim.hospital_id}}</p>
+          </div>
+          <div class="mb-3">
+            <strong>Remarks:</strong>
+            <p class="mb-0">{{selectedClaim.remarks}}</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

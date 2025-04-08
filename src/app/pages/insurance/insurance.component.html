@@ -1,0 +1,75 @@
+<!-- Sales/Offer Popup -->
+<div class="sales-popup" *ngIf="showSalesPopup">
+  <div class="popup-content">
+    <button class="close-btn" (click)="closeSalesPopup()">&times;</button>
+    <h3>Special Insurance Offer! 🎉</h3>
+    <p class="offer-text">Get 20% off on all new Health Insurance policies!</p>
+    <p class="offer-details">Limited time offer. Terms and conditions apply.</p>
+    <button class="btn btn-primary" (click)="closeSalesPopup()">Learn More</button>
+  </div>
+</div>
+
+<div class="row">
+  <!-- Insurance Form Column -->
+  <div class="col-md-8">
+    <div class="card">
+      <div class="card-header">
+        <h2>New Insurance Policy</h2>
+      </div>
+      <div class="card-body">
+        <form (ngSubmit)="onSubmit()" #insuranceForm="ngForm">
+          <div class="mb-3">
+            <label for="policy_name" class="form-label">Policy Name</label>
+            <input type="text" class="form-control" id="policy_name" name="policy_name" 
+                   [(ngModel)]="policy.policy_name" required>
+          </div>
+
+          <div class="mb-3">
+            <label for="policy_type" class="form-label">Policy Type</label>
+            <select class="form-select" id="policy_type" name="policy_type" 
+                    [(ngModel)]="policy.policy_type" required>
+              <option value="">Select Policy Type</option>
+              <option value="health">Health Insurance</option>
+              <option value="life">Life Insurance</option>
+              <option value="vehicle">Vehicle Insurance</option>
+              <option value="property">Property Insurance</option>
+            </select>
+          </div>
+
+          <div class="mb-3">
+            <label for="premium" class="form-label">Premium Amount</label>
+            <input type="number" class="form-control" id="premium" name="premium" 
+                   [(ngModel)]="policy.premium" required>
+          </div>
+
+          <div class="mb-3">
+            <label for="coverage" class="form-label">Coverage Amount</label>
+            <input type="number" class="form-control" id="coverage" name="coverage" 
+                   [(ngModel)]="policy.coverage" required>
+          </div>
+
+          <div class="mb-3">
+            <label for="duration_years" class="form-label">Duration (Years)</label>
+            <input type="number" class="form-control" id="duration_years" name="duration_years" 
+                   [(ngModel)]="policy.duration_years" required min="1">
+            <small class="form-text text-muted">Please enter a duration greater than 0 years.</small>
+          </div>
+
+          <button type="submit" class="btn btn-primary" [disabled]="!insuranceForm.valid">Submit</button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Pie Chart Column -->
+  <div class="col-md-4">
+    <div class="card">
+      <div class="card-header">
+        <h2>Policy Distribution</h2>
+      </div>
+      <div class="card-body">
+        <canvas id="insuranceChart"></canvas>
+      </div>
+    </div>
+  </div>
+</div>
