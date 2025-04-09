@@ -9,66 +9,104 @@
   </div>
 </div>
 
-<div class="row">
-  <!-- Insurance Form Column -->
-  <div class="col-md-8">
-    <div class="card">
-      <div class="card-header">
-        <h2>New Insurance Policy</h2>
+<div class="container mt-4">
+  <div class="row">
+    <!-- Insurance Form Column -->
+    <div class="col-md-8">
+      <div class="card mb-4">
+        <div class="card-header">
+          <h2>New Insurance Policy</h2>
+        </div>
+        <div class="card-body">
+          <form (ngSubmit)="onSubmit()" #insuranceForm="ngForm">
+            <div class="mb-3">
+              <label for="policy_name" class="form-label">Policy Name</label>
+              <input type="text" class="form-control" id="policy_name" name="policy_name" 
+                     [(ngModel)]="policy.policy_name" required>
+            </div>
+
+            <div class="mb-3">
+              <label for="policy_type" class="form-label">Policy Type</label>
+              <select class="form-select" id="policy_type" name="policy_type" 
+                      [(ngModel)]="policy.policy_type" required>
+                <option value="">Select Policy Type</option>
+                <option value="health">Health Insurance</option>
+                <option value="life">Life Insurance</option>
+                <option value="vehicle">Vehicle Insurance</option>
+                <option value="property">Property Insurance</option>
+              </select>
+            </div>
+
+            <div class="mb-3">
+              <label for="premium" class="form-label">Premium Amount</label>
+              <input type="number" class="form-control" id="premium" name="premium" 
+                     [(ngModel)]="policy.premium" required>
+            </div>
+
+            <div class="mb-3">
+              <label for="coverage" class="form-label">Coverage Amount</label>
+              <input type="number" class="form-control" id="coverage" name="coverage" 
+                     [(ngModel)]="policy.coverage" required>
+            </div>
+
+            <div class="mb-3">
+              <label for="duration_years" class="form-label">Duration (Years)</label>
+              <input type="number" class="form-control" id="duration_years" name="duration_years" 
+                     [(ngModel)]="policy.duration_years" required min="1">
+              <small class="form-text text-muted">Please enter a duration greater than 0 years.</small>
+            </div>
+
+            <button type="submit" class="btn btn-primary" [disabled]="!insuranceForm.valid">Submit</button>
+          </form>
+        </div>
       </div>
-      <div class="card-body">
-        <form (ngSubmit)="onSubmit()" #insuranceForm="ngForm">
-          <div class="mb-3">
-            <label for="policy_name" class="form-label">Policy Name</label>
-            <input type="text" class="form-control" id="policy_name" name="policy_name" 
-                   [(ngModel)]="policy.policy_name" required>
-          </div>
 
-          <div class="mb-3">
-            <label for="policy_type" class="form-label">Policy Type</label>
-            <select class="form-select" id="policy_type" name="policy_type" 
-                    [(ngModel)]="policy.policy_type" required>
-              <option value="">Select Policy Type</option>
-              <option value="health">Health Insurance</option>
-              <option value="life">Life Insurance</option>
-              <option value="vehicle">Vehicle Insurance</option>
-              <option value="property">Property Insurance</option>
-            </select>
+      <!-- Policy Table -->
+      <div class="card">
+        <div class="card-header">
+          <h2>Existing Policies</h2>
+        </div>
+        <div class="card-body">
+          <div class="table-responsive">
+            <table class="table table-striped table-hover">
+              <thead>
+                <tr>
+                  <th>Policy ID</th>
+                  <th>Policy Name</th>
+                  <th>Type</th>
+                  <th>Premium</th>
+                  <th>Coverage</th>
+                  <th>Duration (Years)</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let policy of policies">
+                  <td>{{policy.policy_id}}</td>
+                  <td>{{policy.policy_name}}</td>
+                  <td>{{policy.policy_type | titlecase}}</td>
+                  <td>{{policy.premium | currency}}</td>
+                  <td>{{policy.coverage | currency}}</td>
+                  <td>{{policy.duration_years}}</td>
+                </tr>
+                <tr *ngIf="policies.length === 0">
+                  <td colspan="6" class="text-center py-3">No policies found</td>
+                </tr>
+              </tbody>
+            </table>
           </div>
-
-          <div class="mb-3">
-            <label for="premium" class="form-label">Premium Amount</label>
-            <input type="number" class="form-control" id="premium" name="premium" 
-                   [(ngModel)]="policy.premium" required>
-          </div>
-
-          <div class="mb-3">
-            <label for="coverage" class="form-label">Coverage Amount</label>
-            <input type="number" class="form-control" id="coverage" name="coverage" 
-                   [(ngModel)]="policy.coverage" required>
-          </div>
-
-          <div class="mb-3">
-            <label for="duration_years" class="form-label">Duration (Years)</label>
-            <input type="number" class="form-control" id="duration_years" name="duration_years" 
-                   [(ngModel)]="policy.duration_years" required min="1">
-            <small class="form-text text-muted">Please enter a duration greater than 0 years.</small>
-          </div>
-
-          <button type="submit" class="btn btn-primary" [disabled]="!insuranceForm.valid">Submit</button>
-        </form>
+        </div>
       </div>
     </div>
-  </div>
 
-  <!-- Pie Chart Column -->
-  <div class="col-md-4">
-    <div class="card">
-      <div class="card-header">
-        <h2>Policy Distribution</h2>
-      </div>
-      <div class="card-body">
-        <canvas id="insuranceChart"></canvas>
+    <!-- Pie Chart Column -->
+    <div class="col-md-4">
+      <div class="card">
+        <div class="card-header">
+          <h2>Policy Distribution</h2>
+        </div>
+        <div class="card-body">
+          <canvas id="insuranceChart"></canvas>
+        </div>
       </div>
     </div>
   </div>

@@ -1,13 +1,14 @@
 import { Component, OnInit, AfterViewInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
+import { HttpClient, HttpClientModule } from '@angular/common/http';
 import { InsurancePolicy } from '../../models/insurance.interface';
 import Chart from 'chart.js/auto';
 
 @Component({
   selector: 'app-insurance',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, HttpClientModule],
   templateUrl: './insurance.component.html',
   styleUrls: ['./insurance.component.scss']
 })
@@ -21,16 +22,19 @@ export class InsuranceComponent implements OnInit, AfterViewInit {
     duration_years: 1
   };
 
+  policies: InsurancePolicy[] = [];
   showSalesPopup = true;
   private chart: any;
+  apiBaseUrl = 'http://localhost:8080/insurance-management-system';
 
-  constructor() { }
+  constructor(private http: HttpClient) { }
 
   ngOnInit(): void {
     // Show sales popup after 2 seconds
     setTimeout(() => {
       this.showSalesPopup = true;
     }, 2000);
+    this.loadPolicies();
   }
 
   ngAfterViewInit(): void {
@@ -43,10 +47,56 @@ export class InsuranceComponent implements OnInit, AfterViewInit {
   }
 
   onSubmit(): void {
-    // Here you would typically send the data to your backend service
-    console.log('Form submitted:', this.policy);
-    // Reset form after successful submission
-    this.resetForm();
+    // Send the data to your backend service
+    this.http.post<InsurancePolicy>(`${this.apiBaseUrl}/policies`, this.policy)
+      .subscribe({
+        next: (response) => {
+          console.log('Policy created:', response);
+          this.policies.push(response);
+          this.resetForm();
+          // Show success message
+          alert('Policy created successfully!');
+        },
+        error: (error) => {
+          console.error('Error creating policy:', error);
+          alert('Failed to create policy. Please try again.');
+        }
+      });
+  }
+
+  private loadPolicies(): void {
+    this.http.get<InsurancePolicy[]>(`${this.apiBaseUrl}/policies`)
+      .subscribe({
+        next: (data) => {
+          this.policies = data;
+        },
+        error: (error) => {
+          console.error('Error loading policies:', error);
+          // Fallback to mock data if API call fails
+          this.loadMockPolicies();
+        }
+      });
+  }
+
+  private loadMockPolicies(): void {
+    this.policies = [
+      {
+        policy_id: 1,
+        policy_name: 'Health Insurance Policy',
+        policy_type: 'health',
+        premium: 500,
+        coverage: 50000,
+        duration_years: 2
+      },
+      {
+        policy_id: 2,
+        policy_name: 'Life Insurance Policy',
+        policy_type: 'life',
+        premium: 300,
+        coverage: 100000,
+        duration_years: 5
+      }
+    ];
   }
 
   private resetForm(): void {
