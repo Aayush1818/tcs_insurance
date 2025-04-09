@@ -5,6 +5,16 @@ import { HttpClient, HttpClientModule } from '@angular/common/http';
 import { InsurancePolicy } from '../../models/insurance.interface';
 import Chart from 'chart.js/auto';
 
+// Interface to match the API response structure
+interface ApiPolicyResponse {
+  id: number;
+  policyName: string;
+  policyType: string;
+  premium: number;
+  coverage: number;
+  duration: number;
+}
+
 @Component({
   selector: 'app-insurance',
   standalone: true,
@@ -14,7 +24,7 @@ import Chart from 'chart.js/auto';
 })
 export class InsuranceComponent implements OnInit, AfterViewInit {
   policy: InsurancePolicy = {
-    policy_id: undefined,
+    policy_id: 0,
     policy_name: '',
     policy_type: '',
     premium: 0,
@@ -47,12 +57,17 @@ export class InsuranceComponent implements OnInit, AfterViewInit {
   }
 
   onSubmit(): void {
+    // Transform our internal model to match the API's expected format
+    const apiPolicy = this.mapToApiFormat(this.policy);
+    
     // Send the data to your backend service
-    this.http.post<InsurancePolicy>(`${this.apiBaseUrl}/policies`, this.policy)
+    this.http.post<ApiPolicyResponse>(`${this.apiBaseUrl}/policy`, apiPolicy)
       .subscribe({
         next: (response) => {
           console.log('Policy created:', response);
-          this.policies.push(response);
+          // Map the response back to our internal format
+          const mappedPolicy = this.mapFromApiFormat(response);
+          this.policies.push(mappedPolicy);
           this.resetForm();
           // Show success message
           alert('Policy created successfully!');
@@ -65,10 +80,11 @@ export class InsuranceComponent implements OnInit, AfterViewInit {
   }
 
   private loadPolicies(): void {
-    this.http.get<InsurancePolicy[]>(`${this.apiBaseUrl}/policies`)
+    this.http.get<ApiPolicyResponse[]>(`${this.apiBaseUrl}/policy`)
       .subscribe({
         next: (data) => {
-          this.policies = data;
+          // Map each API response to our internal model format
+          this.policies = data.map(item => this.mapFromApiFormat(item));
         },
         error: (error) => {
           console.error('Error loading policies:', error);
@@ -78,7 +94,41 @@ export class InsuranceComponent implements OnInit, AfterViewInit {
       });
   }
 
+  // Map from our internal model to API format
+  private mapToApiFormat(policy: InsurancePolicy): ApiPolicyResponse {
+    return {
+      id: policy.policy_id,
+      policyName: policy.policy_name,
+      policyType: policy.policy_type,
+      premium: policy.premium,
+      coverage: policy.coverage,
+      duration: policy.duration_years
+    };
+  }
+
+  // Map from API format to our internal model
+  private mapFromApiFormat(apiPolicy: ApiPolicyResponse): InsurancePolicy {
+    return {
+      policy_id: apiPolicy.id,
+      policy_name: apiPolicy.policyName,
+      policy_type: apiPolicy.policyType,
+      premium: apiPolicy.premium,
+      coverage: apiPolicy.coverage,
+      duration_years: apiPolicy.duration
+    };
+  }
+
   private loadMockPolicies(): void {
+    // Example of mapping API response to our internal format
+    const apiResponseExample = {
+      id: 2,
+      policyName: "HealthSecures Basic",
+      policyType: "Health",
+      premium: 1000.0,
+      coverage: 50000.0,
+      duration: 5
+    };
+    
     this.policies = [
       {
         policy_id: 1,
@@ -88,20 +138,14 @@ export class InsuranceComponent implements OnInit, AfterViewInit {
         coverage: 50000,
         duration_years: 2
       },
-      {
-        policy_id: 2,
-        policy_name: 'Life Insurance Policy',
-        policy_type: 'life',
-        premium: 300,
-        coverage: 100000,
-        duration_years: 5
-      }
+      // Map the API example to our format
+      this.mapFromApiFormat(apiResponseExample)
     ];
   }
 
   private resetForm(): void {
     this.policy = {
-      policy_id: undefined,
+      policy_id: 0,
       policy_name: '',
       policy_type: '',
       premium: 0,

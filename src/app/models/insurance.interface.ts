@@ -1,5 +1,5 @@
 export interface InsurancePolicy {
-  policy_id?: number;  // Optional since it's auto-generated
+  policy_id: number;  // Optional since it's auto-generated
   policy_name: string;
   policy_type: string;
   premium: number;
