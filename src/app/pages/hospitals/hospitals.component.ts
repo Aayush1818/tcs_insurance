@@ -20,6 +20,7 @@ export class HospitalsComponent implements OnInit, OnDestroy {
   loading: boolean = false;
   error: string | null = null;
   isBrowser: boolean;
+  showEditModal = false;
   
   // New hospital form
   hospital: Hospital = {
@@ -143,8 +144,6 @@ export class HospitalsComponent implements OnInit, OnDestroy {
       phone_number: '',
       created_at: new Date()
     };
-    
-    console.log('Opening new hospital form');
   }
 
   closeNewHospitalForm(): void {
@@ -168,9 +167,11 @@ export class HospitalsComponent implements OnInit, OnDestroy {
           this.filteredHospitals = [...this.hospitals];
           this.closeNewHospitalForm();
           this.resetForm();
+          alert('Hospital added successfully!');
         },
         error: (error) => {
           console.error('Error adding hospital:', error);
+          alert('Failed to add hospital. Please try again.');
         }
       });
   }
@@ -209,6 +210,7 @@ export class HospitalsComponent implements OnInit, OnDestroy {
     if (!this.isBrowser) return;
     
     this.selectedHospital = { ...hospital };
+    this.showEditModal = true;
     
     setTimeout(() => {
       const modal = document.getElementById('editHospitalModal');
@@ -221,6 +223,11 @@ export class HospitalsComponent implements OnInit, OnDestroy {
         }
       }
     });
+  }
+
+  closeEditModal(): void {
+    this.showEditModal = false;
+    this.selectedHospital = null;
   }
 
   updateHospital(): void {
@@ -242,9 +249,12 @@ export class HospitalsComponent implements OnInit, OnDestroy {
             this.hospitals[index] = { ...response };
             this.filteredHospitals = [...this.hospitals];
           }
+          this.closeEditModal();
+          alert('Hospital updated successfully!');
         },
         error: (error) => {
           console.error('Error updating hospital:', error);
+          alert('Failed to update hospital. Please try again.');
         }
       });
     }

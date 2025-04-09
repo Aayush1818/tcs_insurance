@@ -134,12 +134,13 @@
 </div>
 
 <!-- Edit Hospital Modal -->
-<div class="modal fade" id="editHospitalModal" tabindex="-1">
+<div class="modal fade" id="editHospitalModal" tabindex="-1" [class.show]="showEditModal"
+  [style.display]="showEditModal ? 'block' : 'none'">
   <div class="modal-dialog">
     <div class="modal-content">
       <div class="modal-header">
         <h5 class="modal-title">Edit Hospital</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        <button type="button" class="btn-close" (click)="closeEditModal()"></button>
       </div>
       <div class="modal-body" *ngIf="selectedHospital">
         <form (ngSubmit)="updateHospital()" #editHospitalForm="ngForm">
@@ -168,8 +169,8 @@
             <input type="tel" class="form-control" id="editPhoneNumber" name="phone_number"
               [(ngModel)]="selectedHospital.phone_number" required>
           </div>
-          <div class="d-flex justify-content-end">
-            <button type="button" class="btn btn-secondary me-2" data-bs-dismiss="modal">Cancel</button>
+          <div class="text-end">
+            <button type="button" class="btn btn-secondary me-2" (click)="closeEditModal()">Cancel</button>
             <button type="submit" class="btn btn-primary" [disabled]="!editHospitalForm.valid">Save Changes</button>
           </div>
         </form>
