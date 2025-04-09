@@ -1,7 +1,9 @@
 export interface InsuranceClaim {
-  claim_id?: number;  // SERIAL PRIMARY KEY, optional for new claims
-  policy_id: number;  // INT FOREIGN KEY REFERENCES Policy(policy_id) NOT NULL
-  hospital_id: number;  // INT FOREIGN KEY REFERENCES Hospital(hospital_id)
-  claim_date?: Date;  // DATE NOT NULL
+  claimId?: number;  // SERIAL PRIMARY KEY, optional for new claims
+  policyId: number;  // INT FOREIGN KEY REFERENCES Policy(policy_id) NOT NULL
+  hospitalId: number;  // INT FOREIGN KEY REFERENCES Hospital(hospital_id)
+  claimName?: string | null;  // From API response
+  createdAt?: string;  // ISO date string from API
   remarks?: string;  // TEXT field for additional notes
-} 
+  status?: string;  // PENDING, APPROVED, REJECTED, etc.
+}

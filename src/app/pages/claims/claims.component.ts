@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { HttpClient, HttpClientModule } from '@angular/common/http';
 import { InsuranceClaim } from '../../models/claim.interface';
 import { InsurancePolicy } from '../../models/insurance.interface';
 import { Hospital } from '../../models/hospital.interface';
@@ -8,7 +9,7 @@ import { Hospital } from '../../models/hospital.interface';
 @Component({
   selector: 'app-claims',
   standalone: true,
-  imports: [CommonModule, FormsModule, ReactiveFormsModule],
+  imports: [CommonModule, FormsModule, ReactiveFormsModule, HttpClientModule],
   templateUrl: './claims.component.html',
   styleUrls: ['./claims.component.scss']
 })
@@ -21,41 +22,63 @@ export class ClaimsComponent implements OnInit {
   claimForm: FormGroup;
   showNewClaimForm = false;
   isSubmitting = false;
+  apiBaseUrl = 'http://localhost:8080/insurance-management-system';
 
-  constructor(private fb: FormBuilder) {
+  constructor(private fb: FormBuilder, private http: HttpClient) {
     this.claimForm = this.fb.group({
-      policy_id: ['', [Validators.required, Validators.min(1)]],
-      hospital_id: ['', [Validators.required, Validators.min(1)]],
+      policyId: ['', [Validators.required, Validators.min(1)]],
+      hospitalId: ['', [Validators.required, Validators.min(1)]],
       remarks: ['', [Validators.required, Validators.minLength(3)]]
     });
   }
 
   ngOnInit(): void {
-    this.loadMockPolicies();
-    this.loadMockHospitals();
-    this.loadMockClaims();
+    this.loadPolicies();
+    this.loadHospitals();
+    this.loadClaims();
+  }
+
+  private loadClaims(): void {
+    this.http.get<InsuranceClaim[]>(`${this.apiBaseUrl}/claims`)
+      .subscribe({
+        next: (data) => {
+          this.claims = data;
+        },
+        error: (error) => {
+          console.error('Error loading claims:', error);
+          // Fallback to mock data if API call fails
+          this.loadMockClaims();
+        }
+      });
   }
 
   private loadMockClaims(): void {
-    // Mock data with SERIAL claim_id and FOREIGN KEY references
+    // Mock data with updated field names to match API response
     this.claims = [
       {
-        claim_id: 1,  // SERIAL starts from 1
-        policy_id: 1,  // INT FOREIGN KEY REFERENCES Policy(policy_id)
-        hospital_id: 1,
-        remarks: 'Regular checkup'
+        claimId: 1,
+        policyId: 1,
+        hospitalId: 1,
+        claimName: null,
+        createdAt: "2025-04-08T20:30:24.415343",
+        remarks: 'Regular checkup',
+        status: 'PENDING'
       },
       {
-        claim_id: 2,  // SERIAL auto-increments
-        policy_id: 2,  // INT FOREIGN KEY REFERENCES Policy(policy_id)
-        hospital_id: 2,
-        remarks: 'Emergency visit'
+        claimId: 2,
+        policyId: 2,
+        hospitalId: 2,
+        claimName: null,
+        createdAt: "2025-04-08T20:30:24.415343",
+        remarks: 'Emergency visit',
+        status: 'APPROVED'
       }
     ];
   }
 
-  private loadMockPolicies(): void {
-    // These policies are referenced by claims via policy_id FOREIGN KEY
+  private loadPolicies(): void {
+    // In a real app, you would fetch this from an API endpoint
+    // For now, using mock data
     this.policies = [
       {
         policy_id: 1,
@@ -76,7 +99,8 @@ export class ClaimsComponent implements OnInit {
     ];
   }
 
-  private loadMockHospitals(): void {
+  private loadHospitals(): void {
+    // In a real app, you would fetch this from an API endpoint
     this.hospitals = [
       {
         hospital_id: 1,
@@ -142,27 +166,30 @@ export class ClaimsComponent implements OnInit {
     if (this.claimForm.valid) {
       this.isSubmitting = true;
       
-      // Simulate API call delay
-      setTimeout(() => {
-        const formValue = this.claimForm.value;
-        
-        // In a real application, the backend would handle the SERIAL
-        const newId = this.claims.length > 0 
-          ? Math.max(...this.claims.map(c => c.claim_id || 0)) + 1 
-          : 1;
-        
-        const claimToAdd: InsuranceClaim = {
-          ...formValue,
-          claim_id: newId
-        };
-        
-        this.claims.push(claimToAdd);
-        this.closeNewClaimForm();
-        this.isSubmitting = false;
-        
-        // Show success message (in a real app, you'd use a toast or notification service)
-        alert('Claim added successfully!');
-      }, 500);
+      const newClaim: InsuranceClaim = {
+        policyId: this.claimForm.value.policyId,
+        hospitalId: this.claimForm.value.hospitalId,
+        remarks: this.claimForm.value.remarks,
+        // status and claimName will be set by the backend
+      };
+      
+      this.http.post<InsuranceClaim>(`${this.apiBaseUrl}/claims`, newClaim)
+        .subscribe({
+          next: (response) => {
+            // Add the new claim to the list
+            this.claims.push(response);
+            this.closeNewClaimForm();
+            // Show success message (in a real app, use a toast service)
+            alert('Claim added successfully!');
+          },
+          error: (error) => {
+            console.error('Error adding claim:', error);
+            alert('Failed to add claim. Please try again.');
+          },
+          complete: () => {
+            this.isSubmitting = false;
+          }
+        });
     } else {
       this.markFormGroupTouched(this.claimForm);
     }
@@ -225,5 +252,11 @@ export class ClaimsComponent implements OnInit {
         document.body.removeChild(backdrop);
       }
     }
+  }
+
+  // Helper method to format date
+  formatDate(dateString: string | undefined): string {
+    if (!dateString) return 'N/A';
+    return new Date(dateString).toLocaleDateString();
   }
 }

@@ -8,37 +8,44 @@
       <div class="card-body">
         <div class="row mb-3">
           <div class="col-md-4">
-            <input type="text" class="form-control" placeholder="Search hospitals..." 
-                   [(ngModel)]="searchTerm" (input)="filterHospitals()">
+            <input type="text" class="form-control" placeholder="Search hospitals..." [(ngModel)]="searchTerm"
+              (input)="filterHospitals()">
           </div>
         </div>
-        <div class="table-responsive">
+        <div *ngIf="loading" class="d-flex justify-content-center my-3">
+          <div class="spinner-border text-primary" role="status">
+            <span class="visually-hidden">Loading...</span>
+          </div>
+        </div>
+        <div *ngIf="error" class="alert alert-danger">{{ error }}</div>
+        <div class="table-responsive" *ngIf="!loading">
           <table class="table table-striped">
             <thead>
               <tr>
-                <th class="text-dark">Hospital Name</th>
-                <th class="text-dark">Location</th>
-                <th class="text-dark">Discount</th>
-                <th class="text-dark">Contact Email</th>
-                <th class="text-dark">Phone Number</th>
-                <th class="text-dark">Actions</th>
+                <th>Name</th>
+                <th>Location</th>
+                <th>Contact Email</th>
+                <th>Phone Number</th>
+                <th>Discount</th>
+                <th>Actions</th>
               </tr>
             </thead>
             <tbody>
               <tr *ngFor="let hospital of filteredHospitals">
-                <td>{{hospital.name}}</td>
-                <td>{{hospital.location}}</td>
-                <td>{{hospital.discount}}%</td>
-                <td>{{hospital.contact_email}}</td>
-                <td>{{hospital.phone_number}}</td>
+                <td>{{ hospital.name }}</td>
+                <td>{{ hospital.location }}</td>
+                <td>{{ hospital.contact_email }}</td>
+                <td>{{ hospital.phone_number }}</td>
                 <td>
-                  <button class="btn btn-sm btn-info me-2" (click)="viewHospitalDetails(hospital)">
-                    <i class="bi bi-eye"></i> View
-                  </button>
-                  <button class="btn btn-sm btn-warning" (click)="editHospital(hospital)">
-                    <i class="bi bi-pencil"></i> Edit
-                  </button>
+                  <span class="badge bg-info">{{ formatDiscount(hospital.discount) }}</span>
                 </td>
+                <td>
+                  <button class="btn btn-sm btn-info me-2" (click)="viewHospitalDetails(hospital)">View</button>
+                  <button class="btn btn-sm btn-warning" (click)="editHospital(hospital)">Edit</button>
+                </td>
+              </tr>
+              <tr *ngIf="filteredHospitals.length === 0">
+                <td colspan="6" class="text-center">No hospitals found</td>
               </tr>
             </tbody>
           </table>
@@ -49,7 +56,8 @@
 </div>
 
 <!-- New Hospital Form Modal -->
-<div class="modal fade" id="newHospitalModal" tabindex="-1" [class.show]="showNewHospitalForm" [style.display]="showNewHospitalForm ? 'block' : 'none'">
+<div class="modal fade" id="newHospitalModal" tabindex="-1" [class.show]="showNewHospitalForm"
+  [style.display]="showNewHospitalForm ? 'block' : 'none'">
   <div class="modal-dialog">
     <div class="modal-content">
       <div class="modal-header">
@@ -60,29 +68,28 @@
         <form (ngSubmit)="onSubmit()" #hospitalForm="ngForm">
           <div class="mb-3">
             <label for="name" class="form-label">Hospital Name</label>
-            <input type="text" class="form-control" id="name" name="name" 
-                   [(ngModel)]="hospital.name" required>
+            <input type="text" class="form-control" id="name" name="name" [(ngModel)]="hospital.name" required>
           </div>
           <div class="mb-3">
             <label for="location" class="form-label">Location</label>
-            <input type="text" class="form-control" id="location" name="location" 
-                   [(ngModel)]="hospital.location" required>
+            <input type="text" class="form-control" id="location" name="location" [(ngModel)]="hospital.location"
+              required>
           </div>
           <div class="mb-3">
             <label for="discount" class="form-label">Discount Percentage</label>
-            <input type="number" class="form-control" id="discount" name="discount" 
-                   [(ngModel)]="hospital.discount" required min="0" max="100">
+            <input type="number" class="form-control" id="discount" name="discount" [(ngModel)]="hospital.discount"
+              required min="0" max="100">
           </div>
           <div class="mb-3">
             <label for="contact_email" class="form-label">Contact Email</label>
-            <input type="email" class="form-control" id="contact_email" name="contact_email" 
-                   [(ngModel)]="hospital.contact_email" required>
+            <input type="email" class="form-control" id="contact_email" name="contact_email"
+              [(ngModel)]="hospital.contact_email" required>
             <small class="form-text text-muted">This email must be unique.</small>
           </div>
           <div class="mb-3">
             <label for="phone_number" class="form-label">Phone Number</label>
-            <input type="tel" class="form-control" id="phone_number" name="phone_number" 
-                   [(ngModel)]="hospital.phone_number" required>
+            <input type="tel" class="form-control" id="phone_number" name="phone_number"
+              [(ngModel)]="hospital.phone_number" required>
           </div>
           <div class="d-flex justify-content-end">
             <button type="button" class="btn btn-secondary me-2" (click)="closeNewHospitalForm()">Cancel</button>
@@ -99,33 +106,24 @@
   <div class="modal-dialog modal-lg">
     <div class="modal-content">
       <div class="modal-header">
-        <h5 class="modal-title">Hospital Details</h5>
+        <h5 class="modal-title" *ngIf="selectedHospital">{{ selectedHospital.name }}</h5>
         <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
       </div>
       <div class="modal-body" *ngIf="selectedHospital">
-        <div class="mb-3">
-          <strong>Hospital Name:</strong>
-          <p class="mb-0">{{selectedHospital.name}}</p>
-        </div>
-        <div class="mb-3">
-          <strong>Location:</strong>
-          <p class="mb-0">{{selectedHospital.location}}</p>
-        </div>
-        <div class="mb-3">
-          <strong>Discount:</strong>
-          <p class="mb-0">{{selectedHospital.discount}}%</p>
-        </div>
-        <div class="mb-3">
-          <strong>Contact Email:</strong>
-          <p class="mb-0">{{selectedHospital.contact_email}}</p>
-        </div>
-        <div class="mb-3">
-          <strong>Phone Number:</strong>
-          <p class="mb-0">{{selectedHospital.phone_number}}</p>
-        </div>
-        <div class="mb-3">
-          <strong>Created At:</strong>
-          <p class="mb-0">{{selectedHospital.created_at | date:'medium'}}</p>
+        <div class="row">
+          <div class="col-md-6">
+            <p><strong>Name:</strong> {{ selectedHospital.name }}</p>
+            <p><strong>Location:</strong> {{ selectedHospital.location }}</p>
+            <p><strong>Contact Email:</strong> {{ selectedHospital.contact_email }}</p>
+          </div>
+          <div class="col-md-6">
+            <p><strong>Phone Number:</strong> {{ selectedHospital.phone_number }}</p>
+            <p><strong>Discount:</strong>
+              <span class="badge bg-info">{{ formatDiscount(selectedHospital.discount) }}</span>
+            </p>
+            <p *ngIf="selectedHospital.created_at"><strong>Created:</strong> {{ selectedHospital.created_at |
+              date:'medium' }}</p>
+          </div>
         </div>
       </div>
       <div class="modal-footer">
@@ -147,28 +145,28 @@
         <form (ngSubmit)="updateHospital()" #editHospitalForm="ngForm">
           <div class="mb-3">
             <label for="editName" class="form-label">Hospital Name</label>
-            <input type="text" class="form-control" id="editName" name="name" 
-                   [(ngModel)]="selectedHospital.name" required>
+            <input type="text" class="form-control" id="editName" name="name" [(ngModel)]="selectedHospital.name"
+              required>
           </div>
           <div class="mb-3">
             <label for="editLocation" class="form-label">Location</label>
-            <input type="text" class="form-control" id="editLocation" name="location" 
-                   [(ngModel)]="selectedHospital.location" required>
+            <input type="text" class="form-control" id="editLocation" name="location"
+              [(ngModel)]="selectedHospital.location" required>
           </div>
           <div class="mb-3">
             <label for="editDiscount" class="form-label">Discount Percentage</label>
-            <input type="number" class="form-control" id="editDiscount" name="discount" 
-                   [(ngModel)]="selectedHospital.discount" required min="0" max="100">
+            <input type="number" class="form-control" id="editDiscount" name="discount"
+              [(ngModel)]="selectedHospital.discount" required min="0" max="100">
           </div>
           <div class="mb-3">
             <label for="editContactEmail" class="form-label">Contact Email</label>
-            <input type="email" class="form-control" id="editContactEmail" name="contact_email" 
-                   [(ngModel)]="selectedHospital.contact_email" required>
+            <input type="email" class="form-control" id="editContactEmail" name="contact_email"
+              [(ngModel)]="selectedHospital.contact_email" required>
           </div>
           <div class="mb-3">
             <label for="editPhoneNumber" class="form-label">Phone Number</label>
-            <input type="tel" class="form-control" id="editPhoneNumber" name="phone_number" 
-                   [(ngModel)]="selectedHospital.phone_number" required>
+            <input type="tel" class="form-control" id="editPhoneNumber" name="phone_number"
+              [(ngModel)]="selectedHospital.phone_number" required>
           </div>
           <div class="d-flex justify-content-end">
             <button type="button" class="btn btn-secondary me-2" data-bs-dismiss="modal">Cancel</button>

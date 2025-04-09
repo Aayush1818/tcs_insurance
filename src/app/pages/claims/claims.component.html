@@ -11,22 +11,39 @@
     <table class="table table-striped table-hover">
       <thead>
         <tr>
+          <th class="text-dark">Claim ID</th>
           <th class="text-dark">Policy ID</th>
           <th class="text-dark">Hospital ID</th>
+          <th class="text-dark">Date</th>
+          <th class="text-dark">Status</th>
           <th class="text-dark">Remarks</th>
           <th class="text-dark">Actions</th>
         </tr>
       </thead>
       <tbody>
         <tr *ngFor="let claim of claims">
-          <td>{{claim.policy_id}}</td>
-          <td>{{claim.hospital_id}}</td>
+          <td>{{claim.claimId}}</td>
+          <td>{{claim.policyId}}</td>
+          <td>{{claim.hospitalId}}</td>
+          <td>{{formatDate(claim.createdAt)}}</td>
+          <td>
+            <span class="badge" [ngClass]="{
+              'bg-warning': claim.status === 'PENDING',
+              'bg-success': claim.status === 'APPROVED',
+              'bg-danger': claim.status === 'REJECTED'
+            }">
+              {{claim.status || 'N/A'}}
+            </span>
+          </td>
           <td>{{claim.remarks}}</td>
           <td>
             <button class="btn btn-sm btn-info me-2" (click)="viewClaimDetails(claim)">
               <i class="bi bi-eye"></i> View
             </button>
           </td>
+        </tr>
+        <tr *ngIf="claims.length === 0">
+          <td colspan="7" class="text-center py-3">No claims found</td>
         </tr>
       </tbody>
     </table>
@@ -43,29 +60,29 @@
         <div class="modal-body">
           <form [formGroup]="claimForm" (ngSubmit)="addClaim()">
             <div class="form-group mb-3">
-              <label for="policy_id" class="form-label">Policy ID <span class="text-danger">*</span></label>
+              <label for="policyId" class="form-label">Policy ID <span class="text-danger">*</span></label>
               <input type="number" 
                      class="form-control" 
-                     id="policy_id" 
-                     formControlName="policy_id"
+                     id="policyId" 
+                     formControlName="policyId"
                      placeholder="Enter policy ID"
-                     [class.is-invalid]="isFieldInvalid('policy_id')">
-              <div class="invalid-feedback" *ngIf="isFieldInvalid('policy_id')">
-                {{getErrorMessage('policy_id')}}
+                     [class.is-invalid]="isFieldInvalid('policyId')">
+              <div class="invalid-feedback" *ngIf="isFieldInvalid('policyId')">
+                {{getErrorMessage('policyId')}}
               </div>
               <small class="form-text text-muted">Enter the ID of the policy associated with this claim</small>
             </div>
 
             <div class="form-group mb-3">
-              <label for="hospital_id" class="form-label">Hospital ID <span class="text-danger">*</span></label>
+              <label for="hospitalId" class="form-label">Hospital ID <span class="text-danger">*</span></label>
               <input type="number" 
                      class="form-control" 
-                     id="hospital_id" 
-                     formControlName="hospital_id"
+                     id="hospitalId" 
+                     formControlName="hospitalId"
                      placeholder="Enter hospital ID"
-                     [class.is-invalid]="isFieldInvalid('hospital_id')">
-              <div class="invalid-feedback" *ngIf="isFieldInvalid('hospital_id')">
-                {{getErrorMessage('hospital_id')}}
+                     [class.is-invalid]="isFieldInvalid('hospitalId')">
+              <div class="invalid-feedback" *ngIf="isFieldInvalid('hospitalId')">
+                {{getErrorMessage('hospitalId')}}
               </div>
               <small class="form-text text-muted">Enter the ID of the hospital where treatment was received</small>
             </div>
@@ -106,18 +123,45 @@
           <button type="button" class="btn-close btn-close-white" (click)="closeClaimDetailsModal()"></button>
         </div>
         <div class="modal-body" *ngIf="selectedClaim">
-          <div class="mb-3">
-            <strong>Policy ID:</strong>
-            <p class="mb-0">{{selectedClaim.policy_id}}</p>
+          <div class="card mb-3">
+            <div class="card-body">
+              <div class="mb-3">
+                <strong>Claim ID:</strong>
+                <p class="mb-0">{{selectedClaim.claimId || 'N/A'}}</p>
+              </div>
+              <div class="mb-3">
+                <strong>Policy ID:</strong>
+                <p class="mb-0">{{selectedClaim.policyId}}</p>
+              </div>
+              <div class="mb-3">
+                <strong>Hospital ID:</strong>
+                <p class="mb-0">{{selectedClaim.hospitalId}}</p>
+              </div>
+              <div class="mb-3">
+                <strong>Date Created:</strong>
+                <p class="mb-0">{{formatDate(selectedClaim.createdAt)}}</p>
+              </div>
+              <div class="mb-3">
+                <strong>Status:</strong>
+                <p class="mb-0">
+                  <span class="badge" [ngClass]="{
+                    'bg-warning': selectedClaim.status === 'PENDING',
+                    'bg-success': selectedClaim.status === 'APPROVED',
+                    'bg-danger': selectedClaim.status === 'REJECTED'
+                  }">
+                    {{selectedClaim.status || 'N/A'}}
+                  </span>
+                </p>
+              </div>
+              <div class="mb-0">
+                <strong>Remarks:</strong>
+                <p class="mb-0">{{selectedClaim.remarks || 'No remarks provided'}}</p>
+              </div>
+            </div>
           </div>
-          <div class="mb-3">
-            <strong>Hospital ID:</strong>
-            <p class="mb-0">{{selectedClaim.hospital_id}}</p>
-          </div>
-          <div class="mb-3">
-            <strong>Remarks:</strong>
-            <p class="mb-0">{{selectedClaim.remarks}}</p>
-          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" (click)="closeClaimDetailsModal()">Close</button>
         </div>
       </div>
     </div>
