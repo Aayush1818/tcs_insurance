@@ -83,17 +83,30 @@
           <div class="mb-3">
             <label for="contact_email" class="form-label">Contact Email</label>
             <input type="email" class="form-control" id="contact_email" name="contact_email"
-              [(ngModel)]="hospital.contact_email" required>
-            <small class="form-text text-muted">This email must be unique.</small>
+              [(ngModel)]="hospital.contact_email" required
+              (input)="validateEmail(hospital.contact_email)"
+              [class.is-invalid]="emailError">
+            <div class="invalid-feedback" *ngIf="emailError">
+              {{ emailError }}
+            </div>
+            <small class="form-text text-muted">This email must be unique and contain &#64; symbol.</small>
           </div>
           <div class="mb-3">
             <label for="phone_number" class="form-label">Phone Number</label>
             <input type="tel" class="form-control" id="phone_number" name="phone_number"
-              [(ngModel)]="hospital.phone_number" required>
+              [(ngModel)]="hospital.phone_number" required
+              (input)="validatePhoneNumber(hospital.phone_number)"
+              [class.is-invalid]="phoneError"
+              maxlength="10"
+              pattern="[0-9]*">
+            <div class="invalid-feedback" *ngIf="phoneError">
+              {{ phoneError }}
+            </div>
+            <small class="form-text text-muted">Enter exactly 10 digits.</small>
           </div>
-          <div class="d-flex justify-content-end">
+          <div class="text-end">
             <button type="button" class="btn btn-secondary me-2" (click)="closeNewHospitalForm()">Cancel</button>
-            <button type="submit" class="btn btn-primary" [disabled]="!hospitalForm.valid">Add Hospital</button>
+            <button type="submit" class="btn btn-primary" [disabled]="!hospitalForm.valid || phoneError || emailError">Add Hospital</button>
           </div>
         </form>
       </div>
@@ -162,16 +175,30 @@
           <div class="mb-3">
             <label for="editContactEmail" class="form-label">Contact Email</label>
             <input type="email" class="form-control" id="editContactEmail" name="contact_email"
-              [(ngModel)]="selectedHospital.contact_email" required>
+              [(ngModel)]="selectedHospital.contact_email" required
+              (input)="validateEmail(selectedHospital.contact_email)"
+              [class.is-invalid]="emailError">
+            <div class="invalid-feedback" *ngIf="emailError">
+              {{ emailError }}
+            </div>
+            <small class="form-text text-muted">This email must be unique and contain &#64; symbol.</small>
           </div>
           <div class="mb-3">
             <label for="editPhoneNumber" class="form-label">Phone Number</label>
             <input type="tel" class="form-control" id="editPhoneNumber" name="phone_number"
-              [(ngModel)]="selectedHospital.phone_number" required>
+              [(ngModel)]="selectedHospital.phone_number" required
+              (input)="validatePhoneNumber(selectedHospital.phone_number)"
+              [class.is-invalid]="phoneError"
+              maxlength="10"
+              pattern="[0-9]*">
+            <div class="invalid-feedback" *ngIf="phoneError">
+              {{ phoneError }}
+            </div>
+            <small class="form-text text-muted">Enter exactly 10 digits.</small>
           </div>
           <div class="text-end">
             <button type="button" class="btn btn-secondary me-2" (click)="closeEditModal()">Cancel</button>
-            <button type="submit" class="btn btn-primary" [disabled]="!editHospitalForm.valid">Save Changes</button>
+            <button type="submit" class="btn btn-primary" [disabled]="!editHospitalForm.valid || phoneError || emailError">Save Changes</button>
           </div>
         </form>
       </div>

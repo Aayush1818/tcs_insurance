@@ -22,6 +22,10 @@ export class HospitalsComponent implements OnInit, OnDestroy {
   isBrowser: boolean;
   showEditModal = false;
   
+  // Form validation states
+  phoneError: string = '';
+  emailError: string = '';
+  
   // New hospital form
   hospital: Hospital = {
     hospital_id: undefined,
@@ -150,7 +154,39 @@ export class HospitalsComponent implements OnInit, OnDestroy {
     this.showNewHospitalForm = false;
   }
 
+  // Validation methods
+  validatePhoneNumber(phone: string): boolean {
+    // Remove any non-digit characters
+    const digitsOnly = phone.replace(/\D/g, '');
+    
+    if (digitsOnly.length !== 10) {
+      this.phoneError = 'Phone number must be exactly 10 digits';
+      return false;
+    }
+    
+    this.phoneError = '';
+    return true;
+  }
+
+  validateEmail(email: string): boolean {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    
+    if (!emailRegex.test(email)) {
+      this.emailError = 'Please enter a valid email address';
+      return false;
+    }
+    
+    this.emailError = '';
+    return true;
+  }
+
   onSubmit(): void {
+    // Validate phone and email before submitting
+    if (!this.validatePhoneNumber(this.hospital.phone_number) || 
+        !this.validateEmail(this.hospital.contact_email)) {
+      return;
+    }
+    
     // Set created_at timestamp for new hospitals
     this.hospital.created_at = new Date();
     
@@ -232,6 +268,12 @@ export class HospitalsComponent implements OnInit, OnDestroy {
 
   updateHospital(): void {
     if (this.selectedHospital && this.selectedHospital.hospital_id) {
+      // Validate phone and email before updating
+      if (!this.validatePhoneNumber(this.selectedHospital.phone_number) || 
+          !this.validateEmail(this.selectedHospital.contact_email)) {
+        return;
+      }
+      
       const apiHospital = this.mapHospitalToApiRequest(this.selectedHospital);
       
       this.http.put<any>(

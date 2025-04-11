@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { HttpClient, HttpClientModule } from '@angular/common/http';
@@ -17,19 +17,34 @@ export class ClaimsComponent implements OnInit {
   claims: InsuranceClaim[] = [];
   selectedClaim: InsuranceClaim | null = null;
   policies: InsurancePolicy[] = [];
+  filteredPolicies: InsurancePolicy[] = [];
   hospitals: Hospital[] = [];
+  filteredHospitals: Hospital[] = [];
   
   claimForm: FormGroup;
   showNewClaimForm = false;
   isSubmitting = false;
+  showPolicySuggestions = false;
+  showHospitalSuggestions = false;
   apiBaseUrl = 'http://localhost:8080/insurance-management-system';
 
   constructor(private fb: FormBuilder, private http: HttpClient) {
     this.claimForm = this.fb.group({
-      policyId: ['', [Validators.required, Validators.min(1)]],
-      hospitalId: ['', [Validators.required, Validators.min(1)]],
+      policyId: ['', [Validators.required]],
+      hospitalId: ['', [Validators.required]],
       remarks: ['', [Validators.required, Validators.minLength(3)]]
     });
+  }
+
+  @HostListener('document:click', ['$event'])
+  onDocumentClick(event: MouseEvent) {
+    const target = event.target as HTMLElement;
+    if (!target.closest('.policy-suggestions') && !target.closest('#policyId')) {
+      this.showPolicySuggestions = false;
+    }
+    if (!target.closest('.hospital-suggestions') && !target.closest('#hospitalId')) {
+      this.showHospitalSuggestions = false;
+    }
   }
 
   ngOnInit(): void {
@@ -258,5 +273,55 @@ export class ClaimsComponent implements OnInit {
   formatDate(dateString: string | undefined): string {
     if (!dateString) return 'N/A';
     return new Date(dateString).toLocaleDateString();
+  }
+
+  searchPolicies(event: Event): void {
+    const searchTerm = (event.target as HTMLInputElement).value.toLowerCase();
+    this.showPolicySuggestions = true;
+    
+    if (!searchTerm) {
+      this.filteredPolicies = [];
+      return;
+    }
+
+    this.filteredPolicies = this.policies.filter(policy => 
+      policy.policy_name.toLowerCase().includes(searchTerm) ||
+      policy.policy_id?.toString().includes(searchTerm) ||
+      policy.policy_type.toLowerCase().includes(searchTerm)
+    );
+  }
+
+  searchHospitals(event: Event): void {
+    const searchTerm = (event.target as HTMLInputElement).value.toLowerCase();
+    this.showHospitalSuggestions = true;
+    
+    if (!searchTerm) {
+      this.filteredHospitals = [];
+      return;
+    }
+
+    this.filteredHospitals = this.hospitals.filter(hospital => 
+      hospital.name.toLowerCase().includes(searchTerm) ||
+      hospital.hospital_id?.toString().includes(searchTerm) ||
+      hospital.location.toLowerCase().includes(searchTerm)
+    );
+  }
+
+  selectPolicy(policy: InsurancePolicy): void {
+    if (policy.policy_id) {
+      this.claimForm.patchValue({
+        policyId: policy.policy_id
+      });
+      this.showPolicySuggestions = false;
+    }
+  }
+
+  selectHospital(hospital: Hospital): void {
+    if (hospital.hospital_id) {
+      this.claimForm.patchValue({
+        hospitalId: hospital.hospital_id
+      });
+      this.showHospitalSuggestions = false;
+    }
   }
 }
