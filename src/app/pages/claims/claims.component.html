@@ -13,7 +13,9 @@
         <tr>
           <th class="text-dark">Claim ID</th>
           <th class="text-dark">Policy ID</th>
+          <th class="text-dark">Policy Name</th>
           <th class="text-dark">Hospital ID</th>
+          <th class="text-dark">Hospital Name</th>
           <th class="text-dark">Date</th>
           <th class="text-dark">Status</th>
           <th class="text-dark">Remarks</th>
@@ -24,7 +26,9 @@
         <tr *ngFor="let claim of claims">
           <td>{{claim.claimId}}</td>
           <td>{{claim.policyId}}</td>
+          <td>{{getPolicyName(claim.policyId)}}</td>
           <td>{{claim.hospitalId}}</td>
+          <td>{{getHospitalName(claim.hospitalId)}}</td>
           <td>{{formatDate(claim.createdAt)}}</td>
           <td>
             <span class="badge" [ngClass]="{
@@ -43,14 +47,20 @@
           </td>
         </tr>
         <tr *ngIf="claims.length === 0">
-          <td colspan="7" class="text-center py-3">No claims found</td>
+          <td colspan="9" class="text-center py-3">No claims found</td>
         </tr>
       </tbody>
     </table>
   </div>
+  <div class="alert alert-info" *ngIf="claimForm.value">
+    <p><strong>Debug Info:</strong></p>
+    <p>Policy ID: {{claimForm.get('policyId')?.value || 'null'}}</p>
+    <p>Hospital ID: {{claimForm.get('hospitalId')?.value || 'null'}}</p>
+  </div>
 
   <!-- New Claim Form Modal -->
-  <div class="modal" id="newClaimModal" tabindex="-1" role="dialog" aria-labelledby="newClaimModalLabel" aria-hidden="true" *ngIf="showNewClaimForm">
+  <div class="modal" id="newClaimModal" tabindex="-1" role="dialog" aria-labelledby="newClaimModalLabel"
+    aria-hidden="true" *ngIf="showNewClaimForm">
     <div class="modal-dialog">
       <div class="modal-content">
         <div class="modal-header bg-primary text-white">
@@ -59,80 +69,41 @@
         </div>
         <div class="modal-body">
           <form [formGroup]="claimForm" (ngSubmit)="addClaim()">
-            <div class="form-group mb-3">
-              <label for="policyId" class="form-label">Policy ID <span class="text-danger">*</span></label>
-              <div class="position-relative">
-                <input type="text" 
-                       class="form-control" 
-                       id="policyId" 
-                       formControlName="policyId"
-                       placeholder="Search policy by name or ID"
-                       (input)="searchPolicies($event)"
-                       [class.is-invalid]="isFieldInvalid('policyId')">
-                <div class="invalid-feedback" *ngIf="isFieldInvalid('policyId')">
-                  {{getErrorMessage('policyId')}}
-                </div>
-                <div class="policy-suggestions" *ngIf="filteredPolicies.length > 0 && showPolicySuggestions">
-                  <div class="list-group">
-                    <button type="button" 
-                            class="list-group-item list-group-item-action" 
-                            *ngFor="let policy of filteredPolicies"
-                            (click)="selectPolicy(policy)">
-                      <div class="d-flex justify-content-between align-items-center">
-                        <span>{{policy.policy_name}}</span>
-                        <small class="text-muted">ID: {{policy.policy_id}}</small>
-                      </div>
-                      <small class="text-muted d-block">
-                        Type: {{policy.policy_type | titlecase}} | Coverage: {{policy.coverage | currency}}
-                      </small>
-                    </button>
-                  </div>
-                </div>
-              </div>
-              <small class="form-text text-muted">Search and select a policy for this claim</small>
+          <!-- Policy Selection -->
+          <div class="form-group mb-3">
+            <label for="policyId" class="form-label">Policy <span class="text-danger">*</span></label>
+            <select class="form-select" id="policyId" formControlName="policyId" [class.is-invalid]="isFieldInvalid('policyId')">
+              <option [ngValue]="null" disabled selected>-- Select a policy --</option>
+              <option *ngFor="let policy of policies" [ngValue]="policy.policyId">
+                {{policy.policyName}} (ID: {{policy.policyId}}) - {{policy.policyType | titlecase}}
+              </option>
+            </select>
+            <div class="invalid-feedback" *ngIf="isFieldInvalid('policyId')">
+              {{getErrorMessage('policyId')}}
             </div>
-
-            <div class="form-group mb-3">
-              <label for="hospitalId" class="form-label">Hospital ID <span class="text-danger">*</span></label>
-              <div class="position-relative">
-                <input type="text" 
-                       class="form-control" 
-                       id="hospitalId" 
-                       formControlName="hospitalId"
-                       placeholder="Search hospital by name or ID"
-                       (input)="searchHospitals($event)"
-                       [class.is-invalid]="isFieldInvalid('hospitalId')">
-                <div class="invalid-feedback" *ngIf="isFieldInvalid('hospitalId')">
-                  {{getErrorMessage('hospitalId')}}
-                </div>
-                <div class="hospital-suggestions" *ngIf="filteredHospitals.length > 0 && showHospitalSuggestions">
-                  <div class="list-group">
-                    <button type="button" 
-                            class="list-group-item list-group-item-action" 
-                            *ngFor="let hospital of filteredHospitals"
-                            (click)="selectHospital(hospital)">
-                      <div class="d-flex justify-content-between align-items-center">
-                        <span>{{hospital.name}}</span>
-                        <small class="text-muted">ID: {{hospital.hospital_id}}</small>
-                      </div>
-                      <small class="text-muted d-block">
-                        Location: {{hospital.location}} | Discount: {{hospital.discount}}%
-                      </small>
-                    </button>
-                  </div>
-                </div>
-              </div>
-              <small class="form-text text-muted">Search and select a hospital for this claim</small>
+            <small class="form-text text-muted">Select from available policies</small>
+          </div>
+          
+          <!-- Hospital Selection -->
+          <div class="form-group mb-3">
+            <label for="hospitalId" class="form-label">Hospital <span class="text-danger">*</span></label>
+            <select class="form-select" id="hospitalId" formControlName="hospitalId"
+              [class.is-invalid]="isFieldInvalid('hospitalId')">
+              <option [ngValue]="null" disabled selected>-- Select a hospital --</option>
+              <option *ngFor="let hospital of hospitals" [ngValue]="hospital.hospitalId">
+                {{hospital.name}} (ID: {{hospital.hospitalId}}) - {{hospital.location}}
+              </option>
+            </select>
+            <div class="invalid-feedback" *ngIf="isFieldInvalid('hospitalId')">
+              {{getErrorMessage('hospitalId')}}
             </div>
-
+            <small class="form-text text-muted">Select from available hospitals</small>
+          </div>
+            <!-- Remarks -->
             <div class="form-group mb-3">
               <label for="remarks" class="form-label">Remarks <span class="text-danger">*</span></label>
-              <textarea class="form-control" 
-                        id="remarks" 
-                        formControlName="remarks" 
-                        rows="3"
-                        placeholder="Enter claim remarks"
-                        [class.is-invalid]="isFieldInvalid('remarks')"></textarea>
+              <textarea class="form-control" id="remarks" formControlName="remarks" rows="3"
+                placeholder="Enter claim remarks" [class.is-invalid]="isFieldInvalid('remarks')"></textarea>
               <div class="invalid-feedback" *ngIf="isFieldInvalid('remarks')">
                 {{getErrorMessage('remarks')}}
               </div>
@@ -140,9 +111,11 @@
             </div>
 
             <div class="text-end">
-              <button type="button" class="btn btn-secondary me-2" (click)="closeNewClaimForm()" [disabled]="isSubmitting">Cancel</button>
+              <button type="button" class="btn btn-secondary me-2" (click)="closeNewClaimForm()"
+                [disabled]="isSubmitting">Cancel</button>
               <button type="submit" class="btn btn-primary" [disabled]="claimForm.invalid || isSubmitting">
-                <span *ngIf="isSubmitting" class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span>
+                <span *ngIf="isSubmitting" class="spinner-border spinner-border-sm me-1" role="status"
+                  aria-hidden="true"></span>
                 {{ isSubmitting ? 'Submitting...' : 'Submit Claim' }}
               </button>
             </div>
@@ -153,7 +126,8 @@
   </div>
 
   <!-- Claim Details Modal -->
-  <div class="modal" id="claimDetailsModal" tabindex="-1" role="dialog" aria-labelledby="claimDetailsModalLabel" aria-hidden="true" *ngIf="selectedClaim">
+  <div class="modal" id="claimDetailsModal" tabindex="-1" role="dialog" aria-labelledby="claimDetailsModalLabel"
+    aria-hidden="true" *ngIf="selectedClaim">
     <div class="modal-dialog">
       <div class="modal-content">
         <div class="modal-header bg-info text-white">
@@ -171,9 +145,25 @@
                 <strong>Policy ID:</strong>
                 <p class="mb-0">{{selectedClaim.policyId}}</p>
               </div>
+              <div class="mb-3" *ngIf="selectedPolicy">
+                <strong>Policy Name:</strong>
+                <p class="mb-0">{{selectedPolicy.policyName}}</p>
+              </div>
+              <div class="mb-3" *ngIf="!selectedPolicy">
+                <strong>Policy Name:</strong>
+                <p class="mb-0">{{getPolicyName(selectedClaim.policyId)}}</p>
+              </div>
               <div class="mb-3">
                 <strong>Hospital ID:</strong>
                 <p class="mb-0">{{selectedClaim.hospitalId}}</p>
+              </div>
+              <div class="mb-3" *ngIf="selectedHospital">
+                <strong>Hospital Name:</strong>
+                <p class="mb-0">{{selectedHospital.name}}</p>
+              </div>
+              <div class="mb-3" *ngIf="!selectedHospital">
+                <strong>Hospital Name:</strong>
+                <p class="mb-0">{{getHospitalName(selectedClaim.hospitalId)}}</p>
               </div>
               <div class="mb-3">
                 <strong>Date Created:</strong>

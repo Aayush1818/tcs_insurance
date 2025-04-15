@@ -1,5 +1,5 @@
 export interface Hospital {
-  hospital_id?: number;  // Optional since it's auto-generated
+  hospitalId?: number;  // Optional since it's auto-generated
   name: string;
   location: string;
   discount: number;

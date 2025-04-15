@@ -24,9 +24,9 @@ interface ApiPolicyResponse {
 })
 export class InsuranceComponent implements OnInit, AfterViewInit {
   policy: InsurancePolicy = {
-    policy_id: 0,
-    policy_name: '',
-    policy_type: '',
+    policyId: 0,
+    policyName: '',
+    policyType: '',
     premium: 0,
     coverage: 0,
     duration_years: 1
@@ -97,9 +97,9 @@ export class InsuranceComponent implements OnInit, AfterViewInit {
   // Map from our internal model to API format
   private mapToApiFormat(policy: InsurancePolicy): ApiPolicyResponse {
     return {
-      id: policy.policy_id,
-      policyName: policy.policy_name,
-      policyType: policy.policy_type,
+      id: policy.policyId,
+      policyName: policy.policyName,
+      policyType: policy.policyType,
       premium: policy.premium,
       coverage: policy.coverage,
       duration: policy.duration_years
@@ -109,9 +109,9 @@ export class InsuranceComponent implements OnInit, AfterViewInit {
   // Map from API format to our internal model
   private mapFromApiFormat(apiPolicy: ApiPolicyResponse): InsurancePolicy {
     return {
-      policy_id: apiPolicy.id,
-      policy_name: apiPolicy.policyName,
-      policy_type: apiPolicy.policyType,
+      policyId: apiPolicy.id,
+      policyName: apiPolicy.policyName,
+      policyType: apiPolicy.policyType,
       premium: apiPolicy.premium,
       coverage: apiPolicy.coverage,
       duration_years: apiPolicy.duration
@@ -131,9 +131,9 @@ export class InsuranceComponent implements OnInit, AfterViewInit {
     
     this.policies = [
       {
-        policy_id: 1,
-        policy_name: 'Health Insurance Policy',
-        policy_type: 'health',
+        policyId: 1,
+        policyName: 'Health Insurance Policy',
+        policyType: 'health',
         premium: 500,
         coverage: 50000,
         duration_years: 2
@@ -145,9 +145,9 @@ export class InsuranceComponent implements OnInit, AfterViewInit {
 
   private resetForm(): void {
     this.policy = {
-      policy_id: 0,
-      policy_name: '',
-      policy_type: '',
+      policyId: 0,
+      policyName: '',
+      policyType: '',
       premium: 0,
       coverage: 0,
       duration_years: 1

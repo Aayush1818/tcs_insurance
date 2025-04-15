@@ -28,7 +28,7 @@
 
       <!-- Policy List -->
       <div class="col-md-6 mb-4">
-        <div class="card h-100">
+        <div class="card h-70">
           <div class="card-header bg-primary text-white">
             <h3 class="card-title mb-0">Available Insurance Policies</h3>
           </div>
@@ -45,15 +45,17 @@
                 </thead>
                 <tbody>
                   <tr *ngFor="let policy of policies">
-                    <td>{{policy.policy_name}}</td>
-                    <td>{{policy.policy_type | titlecase}}</td>
+                    <td>{{policy.policyName}}</td>
+                    <td>{{policy.policyType | titlecase}}</td>
                     <td>{{policy.coverage | currency}}</td>
                     <td>
                       <a routerLink="/insurance" class="btn btn-sm btn-outline-primary">Learn More</a>
                     </td>
                   </tr>
-                  <tr *ngIf="policies.length === 0">
-                    <td colspan="4" class="text-center py-3">No policies available</td>
+                  <tr *ngIf="policies.length > 5">
+                    <td colspan="4" class="text-center">
+                      <a routerLink="/insurance" class="btn btn-sm btn-link">View all {{policies.length}} policies</a>
+                    </td>
                   </tr>
                 </tbody>
               </table>
@@ -132,7 +134,7 @@
             <input type="email" class="form-control" placeholder="Your email address" aria-label="Your email address">
             <button class="btn btn-primary" type="button">Subscribe</button>
           </div>
-          <p class="small text-muted">By subscribing, you agree to our Privacy Policy and consent to receive updates from our company.</p>
+          <p class="small mb-3">By subscribing, you agree to our Privacy Policy and consent to receive updates from our company.</p>
         </div>
       </div>
       <hr class="my-4">

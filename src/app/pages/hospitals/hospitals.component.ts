@@ -28,7 +28,7 @@ export class HospitalsComponent implements OnInit, OnDestroy {
   
   // New hospital form
   hospital: Hospital = {
-    hospital_id: undefined,
+    hospitalId: undefined,
     name: '',
     location: '',
     discount: 0,
@@ -77,7 +77,7 @@ export class HospitalsComponent implements OnInit, OnDestroy {
     // Mock data matching the original Hospital interface
     this.hospitals = [
       {
-        hospital_id: 1,
+        hospitalId: 1,
         name: 'Apollo Hospital',
         location: 'Kolkata, India',
         discount: 10,
@@ -86,7 +86,7 @@ export class HospitalsComponent implements OnInit, OnDestroy {
         created_at: new Date('2024-01-01')
       },
       {
-        hospital_id: 2,
+        hospitalId: 2,
         name: 'Max Healthcare',
         location: 'Delhi, India',
         discount: 15,
@@ -100,7 +100,7 @@ export class HospitalsComponent implements OnInit, OnDestroy {
 
   private mapApiResponseToHospital(apiResponse: any): Hospital {
     return {
-      hospital_id: apiResponse.id,
+      hospitalId: apiResponse.id,
       name: apiResponse.name,
       location: apiResponse.location,
       discount: apiResponse.discount,
@@ -112,7 +112,7 @@ export class HospitalsComponent implements OnInit, OnDestroy {
 
   private mapHospitalToApiRequest(hospital: Hospital): any {
     return {
-      id: hospital.hospital_id,
+      id: hospital.hospitalId,
       name: hospital.name,
       location: hospital.location,
       discount: hospital.discount,
@@ -140,7 +140,7 @@ export class HospitalsComponent implements OnInit, OnDestroy {
     
     this.showNewHospitalForm = true;
     this.hospital = {
-      hospital_id: undefined,
+      hospitalId: undefined,
       name: '',
       location: '',
       discount: 0,
@@ -214,7 +214,7 @@ export class HospitalsComponent implements OnInit, OnDestroy {
 
   private resetForm(): void {
     this.hospital = {
-      hospital_id: undefined,
+      hospitalId: undefined,
       name: '',
       location: '',
       discount: 0,
@@ -267,7 +267,7 @@ export class HospitalsComponent implements OnInit, OnDestroy {
   }
 
   updateHospital(): void {
-    if (this.selectedHospital && this.selectedHospital.hospital_id) {
+    if (this.selectedHospital && this.selectedHospital.hospitalId) {
       // Validate phone and email before updating
       if (!this.validatePhoneNumber(this.selectedHospital.phone_number) || 
           !this.validateEmail(this.selectedHospital.contact_email)) {
@@ -277,7 +277,7 @@ export class HospitalsComponent implements OnInit, OnDestroy {
       const apiHospital = this.mapHospitalToApiRequest(this.selectedHospital);
       
       this.http.put<any>(
-        `http://localhost:8080/insurance-management-system/hospitals/${this.selectedHospital.hospital_id}`, 
+        `http://localhost:8080/insurance-management-system/hospitals/${this.selectedHospital.hospitalId}`, 
         apiHospital
       )
       .pipe(
@@ -286,7 +286,7 @@ export class HospitalsComponent implements OnInit, OnDestroy {
       .subscribe({
         next: (response) => {
           console.log('Hospital updated successfully:', response);
-          const index = this.hospitals.findIndex(h => h.hospital_id === this.selectedHospital?.hospital_id);
+          const index = this.hospitals.findIndex(h => h.hospitalId === this.selectedHospital?.hospitalId);
           if (index !== -1) {
             this.hospitals[index] = { ...response };
             this.filteredHospitals = [...this.hospitals];

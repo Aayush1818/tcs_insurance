@@ -5,6 +5,16 @@ import { HttpClient, HttpClientModule } from '@angular/common/http';
 import { InsurancePolicy } from '../../models/insurance.interface';
 import Chart from 'chart.js/auto';
 
+// Define the backend policy interface
+interface BackendInsurancePolicy {
+  id: number;
+  policyName: string;
+  policyType: string;
+  premium: number;
+  coverage: number;
+  duration: number;
+}
+
 @Component({
   selector: 'app-landing',
   standalone: true,
@@ -29,10 +39,14 @@ export class LandingComponent implements OnInit, AfterViewInit {
   }
 
   private loadPolicies(): void {
-    this.http.get<InsurancePolicy[]>(`${this.apiBaseUrl}/policies`)
+    this.http.get<BackendInsurancePolicy[]>(`${this.apiBaseUrl}/policy`)
       .subscribe({
         next: (data) => {
-          this.policies = data;
+          // Map backend data format to frontend format
+          this.policies = data.map(policy => this.mapBackendToFrontendPolicy(policy));
+          console.log('Policies loaded:', this.policies);
+          // Update chart data based on loaded policies
+          this.updateChartData();
         },
         error: (error) => {
           console.error('Error loading policies:', error);
@@ -42,62 +56,101 @@ export class LandingComponent implements OnInit, AfterViewInit {
       });
   }
 
+  private mapBackendToFrontendPolicy(backendPolicy: BackendInsurancePolicy): InsurancePolicy {
+    return {
+      policyId: backendPolicy.id,
+      policyName: backendPolicy.policyName,
+      policyType: backendPolicy.policyType.toLowerCase(), // Ensure consistent casing
+      premium: backendPolicy.premium,
+      coverage: backendPolicy.coverage,
+      duration_years: backendPolicy.duration
+    };
+  }
+
   private loadMockPolicies(): void {
     this.policies = [
       {
-        policy_id: 1,
-        policy_name: 'Health Insurance Policy',
-        policy_type: 'health',
+        policyId: 1,
+        policyName: 'Health Insurance Policy',
+        policyType: 'health',
         premium: 500,
         coverage: 50000,
         duration_years: 2
       },
       {
-        policy_id: 2,
-        policy_name: 'Life Insurance Policy',
-        policy_type: 'life',
+        policyId: 2,
+        policyName: 'Life Insurance Policy',
+        policyType: 'life',
         premium: 300,
         coverage: 100000,
         duration_years: 5
       },
       {
-        policy_id: 3,
-        policy_name: 'Vehicle Insurance Policy',
-        policy_type: 'vehicle',
+        policyId: 3,
+        policyName: 'Vehicle Insurance Policy',
+        policyType: 'vehicle',
         premium: 200,
         coverage: 25000,
         duration_years: 1
       },
       {
-        policy_id: 4,
-        policy_name: 'Property Insurance Policy',
-        policy_type: 'property',
+        policyId: 4,
+        policyName: 'Property Insurance Policy',
+        policyType: 'property',
         premium: 400,
         coverage: 75000,
         duration_years: 3
       }
     ];
+    // Also update chart if using mock data
+    this.updateChartData();
+  }
+
+  private updateChartData(): void {
+    if (!this.chart) return;
+
+    // Count policies by type
+    const policyTypes = this.policies.reduce((acc, policy) => {
+      const type = policy.policyType.toLowerCase();
+      acc[type] = (acc[type] || 0) + 1;
+      return acc;
+    }, {} as Record<string, number>);
+
+    // Prepare data for chart
+    const labels = Object.keys(policyTypes).map(type => 
+      type.charAt(0).toUpperCase() + type.slice(1) + ' Insurance'
+    );
+    const data = Object.values(policyTypes);
+
+    // Update chart
+    this.chart.data.labels = labels;
+    this.chart.data.datasets[0].data = data;
+    this.chart.update();
   }
 
   private createPieChart(): void {
     // Check if we're in a browser environment
     if (typeof window !== 'undefined') {
-      // Sample data for the pie chart
+      // Initial empty data for the pie chart
       const data = {
-        labels: ['Health Insurance', 'Life Insurance', 'Vehicle Insurance', 'Property Insurance'],
+        labels: [],
         datasets: [{
-          data: [35, 25, 20, 20], // Percentages
+          data: [], 
           backgroundColor: [
             '#FF6384',
             '#36A2EB',
             '#FFCE56',
-            '#4BC0C0'
+            '#4BC0C0',
+            '#9966FF',
+            '#FF9F40'
           ],
           hoverBackgroundColor: [
             '#FF4F71',
             '#2F8FD8',
             '#FFB943',
-            '#38ADAD'
+            '#38ADAD',
+            '#8844EE',
+            '#FF8C2D'
           ]
         }]
       };
@@ -122,7 +175,12 @@ export class LandingComponent implements OnInit, AfterViewInit {
             }
           }
         });
+        
+        // If policies are already loaded, update the chart
+        if (this.policies.length > 0) {
+          this.updateChartData();
+        }
       }
     }
   }
-} 
+}

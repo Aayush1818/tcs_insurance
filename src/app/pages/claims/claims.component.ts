@@ -16,6 +16,8 @@ import { Hospital } from '../../models/hospital.interface';
 export class ClaimsComponent implements OnInit {
   claims: InsuranceClaim[] = [];
   selectedClaim: InsuranceClaim | null = null;
+  selectedPolicy: InsurancePolicy | null = null;
+  selectedHospital: Hospital | null = null;
   policies: InsurancePolicy[] = [];
   filteredPolicies: InsurancePolicy[] = [];
   hospitals: Hospital[] = [];
@@ -29,10 +31,22 @@ export class ClaimsComponent implements OnInit {
   apiBaseUrl = 'http://localhost:8080/insurance-management-system';
 
   constructor(private fb: FormBuilder, private http: HttpClient) {
-    this.claimForm = this.fb.group({
-      policyId: ['', [Validators.required]],
-      hospitalId: ['', [Validators.required]],
-      remarks: ['', [Validators.required, Validators.minLength(3)]]
+  this.claimForm = this.fb.group({
+    policyId: ['', [Validators.required]],
+    hospitalId: ['', [Validators.required]],
+    remarks: ['', [Validators.required, Validators.minLength(3)]]
+  });
+}
+
+
+  private markFormGroupTouched(formGroup: FormGroup): void {
+    Object.keys(formGroup.controls).forEach(field => {
+      const control = formGroup.get(field);
+      if (control instanceof FormGroup) {
+        this.markFormGroupTouched(control);
+      } else {
+        control?.markAsTouched();
+      }
     });
   }
 
@@ -47,11 +61,21 @@ export class ClaimsComponent implements OnInit {
     }
   }
 
-  ngOnInit(): void {
-    this.loadPolicies();
-    this.loadHospitals();
+ngOnInit(): void {
+  // Load master data first
+  this.loadPolicies();
+  this.loadHospitals();
+  
+  // Then load claims that depend on the master data
+  setTimeout(() => {
     this.loadClaims();
-  }
+  }, 500);
+  
+  // Debug: Monitor form value changes
+  this.claimForm.valueChanges.subscribe(values => {
+    console.log('Form values:', values);
+  });
+}
 
   private loadClaims(): void {
     this.http.get<InsuranceClaim[]>(`${this.apiBaseUrl}/claims`)
@@ -91,57 +115,55 @@ export class ClaimsComponent implements OnInit {
     ];
   }
 
-  private loadPolicies(): void {
-    // In a real app, you would fetch this from an API endpoint
-    // For now, using mock data
-    this.policies = [
-      {
-        policy_id: 1,
-        policy_name: 'Health Insurance Policy',
-        policy_type: 'health',
-        premium: 500,
-        coverage: 50000,
-        duration_years: 2
+private loadPolicies(): void {
+  this.http.get<InsurancePolicy[]>(`${this.apiBaseUrl}/policy`)
+    .subscribe({
+      next: (data) => {
+        console.log('Loaded policies:', data); // Debug output
+        this.policies = data;
+        this.filteredPolicies = [...this.policies];
+        
+        // After loading policies, check if the names can be retrieved
+        if (this.claims.length > 0) {
+          console.log('Test policy name retrieval:', 
+            this.getPolicyName(this.claims[0].policyId));
+        }
       },
-      {
-        policy_id: 2,
-        policy_name: 'Life Insurance Policy',
-        policy_type: 'life',
-        premium: 300,
-        coverage: 100000,
-        duration_years: 5
+      error: (error) => {
+        console.error('Error loading policies:', error);
+        // Load mock data as fallback
+     
       }
-    ];
-  }
+    });
+}
 
-  private loadHospitals(): void {
-    // In a real app, you would fetch this from an API endpoint
-    this.hospitals = [
-      {
-        hospital_id: 1,
-        name: 'City General Hospital',
-        location: '123 Main Street, City',
-        discount: 10,
-        contact_email: 'city@hospital.com',
-        phone_number: '1234567890',
-        created_at: new Date('2024-01-01')
+
+
+private loadHospitals(): void {
+  this.http.get<Hospital[]>(`${this.apiBaseUrl}/hospitals`)
+    .subscribe({
+      next: (data) => {
+        console.log('Loaded hospitals:', data); // Debug output
+        this.hospitals = data;
+        this.filteredHospitals = [...this.hospitals];
       },
-      {
-        hospital_id: 2,
-        name: 'Private Care Hospital',
-        location: '456 Health Avenue, City',
-        discount: 15,
-        contact_email: 'private@hospital.com',
-        phone_number: '9876543210',
-        created_at: new Date('2024-02-01')
+      error: (error) => {
+        console.error('Error loading hospitals:', error);
+        // Use mock data as fallback
+      
       }
-    ];
-  }
+    });
+}
+
 
   openNewClaimForm(): void {
     this.showNewClaimForm = true;
     this.claimForm.reset();
     this.isSubmitting = false;
+    
+    // Reset filtered lists to show all options initially
+    this.filteredPolicies = [...this.policies];
+    this.filteredHospitals = [...this.hospitals];
     
     // Use a simpler approach to show the modal
     const modalElement = document.getElementById('newClaimModal');
@@ -157,67 +179,60 @@ export class ClaimsComponent implements OnInit {
     }
   }
 
-  closeNewClaimForm(): void {
-    this.showNewClaimForm = false;
-    this.claimForm.reset();
-    this.isSubmitting = false;
+
+
+addClaim(): void {
+  if (this.claimForm.valid) {
+    this.isSubmitting = true;
     
-    // Hide the modal
-    const modalElement = document.getElementById('newClaimModal');
-    if (modalElement) {
-      modalElement.classList.remove('show');
-      modalElement.style.display = 'none';
-      document.body.classList.remove('modal-open');
-      
-      // Remove backdrop
-      const backdrop = document.querySelector('.modal-backdrop');
-      if (backdrop) {
-        document.body.removeChild(backdrop);
-      }
+    // Get form values and log them for debugging
+    const formValues = this.claimForm.value;
+    console.log('Form values before submission:', formValues);
+    
+    // Create the claim object with proper number conversion
+    const newClaim: InsuranceClaim = {
+      policyId: Number(formValues.policyId) || 0,
+      hospitalId: Number(formValues.hospitalId) || 0,
+      remarks: formValues.remarks,
+      // status and claimName will be set by the backend
+    };
+    
+    console.log('Claim to be submitted:', newClaim);
+    
+    // Add some validation checks
+    if (!newClaim.policyId) {
+      alert('Please select a policy');
+      this.isSubmitting = false;
+      return;
     }
-  }
-
-  addClaim(): void {
-    if (this.claimForm.valid) {
-      this.isSubmitting = true;
-      
-      const newClaim: InsuranceClaim = {
-        policyId: this.claimForm.value.policyId,
-        hospitalId: this.claimForm.value.hospitalId,
-        remarks: this.claimForm.value.remarks,
-        // status and claimName will be set by the backend
-      };
-      
-      this.http.post<InsuranceClaim>(`${this.apiBaseUrl}/claims`, newClaim)
-        .subscribe({
-          next: (response) => {
-            // Add the new claim to the list
-            this.claims.push(response);
-            this.closeNewClaimForm();
-            // Show success message (in a real app, use a toast service)
-            alert('Claim added successfully!');
-          },
-          error: (error) => {
-            console.error('Error adding claim:', error);
-            alert('Failed to add claim. Please try again.');
-          },
-          complete: () => {
-            this.isSubmitting = false;
-          }
-        });
-    } else {
-      this.markFormGroupTouched(this.claimForm);
+    
+    if (!newClaim.hospitalId) {
+      alert('Please select a hospital');
+      this.isSubmitting = false;
+      return;
     }
+    
+    this.http.post<InsuranceClaim>(`${this.apiBaseUrl}/claims`, newClaim)
+      .subscribe({
+        next: (response) => {
+          console.log('Server response:', response);
+          this.claims.push(response);
+          this.closeNewClaimForm();
+          alert('Claim added successfully!');
+        },
+        error: (error) => {
+          console.error('Error adding claim:', error);
+          alert('Failed to add claim. Please try again.');
+        },
+        complete: () => {
+          this.isSubmitting = false;
+        }
+      });
+  } else {
+    this.markFormGroupTouched(this.claimForm);
+    console.log('Form validation errors:', this.claimForm.errors);
   }
-
-  private markFormGroupTouched(formGroup: FormGroup) {
-    Object.values(formGroup.controls).forEach(control => {
-      control.markAsTouched();
-      if (control instanceof FormGroup) {
-        this.markFormGroupTouched(control);
-      }
-    });
-  }
+}
 
   getErrorMessage(controlName: string): string {
     const control = this.claimForm.get(controlName);
@@ -237,6 +252,15 @@ export class ClaimsComponent implements OnInit {
   viewClaimDetails(claim: InsuranceClaim): void {
     this.selectedClaim = claim;
     
+    // Find the related policy and hospital for display
+    if (claim.policyId) {
+      this.selectedPolicy = this.policies.find(p => p.policyId === claim.policyId) || null;
+    }
+    
+    if (claim.hospitalId) {
+      this.selectedHospital = this.hospitals.find(h => h.hospitalId === claim.hospitalId) || null;
+    }
+    
     // Use the same approach to show the modal
     const modalElement = document.getElementById('claimDetailsModal');
     if (modalElement) {
@@ -253,6 +277,8 @@ export class ClaimsComponent implements OnInit {
 
   closeClaimDetailsModal(): void {
     this.selectedClaim = null;
+    this.selectedPolicy = null;
+    this.selectedHospital = null;
     
     // Hide the modal
     const modalElement = document.getElementById('claimDetailsModal');
@@ -275,53 +301,146 @@ export class ClaimsComponent implements OnInit {
     return new Date(dateString).toLocaleDateString();
   }
 
-  searchPolicies(event: Event): void {
-    const searchTerm = (event.target as HTMLInputElement).value.toLowerCase();
+  // Show policy suggestions when field is focused
+  onPolicyInputFocus(): void {
+    // Set filtered policies to all policies initially
+    this.filteredPolicies = [...this.policies];
     this.showPolicySuggestions = true;
-    
-    if (!searchTerm) {
-      this.filteredPolicies = [];
-      return;
-    }
-
-    this.filteredPolicies = this.policies.filter(policy => 
-      policy.policy_name.toLowerCase().includes(searchTerm) ||
-      policy.policy_id?.toString().includes(searchTerm) ||
-      policy.policy_type.toLowerCase().includes(searchTerm)
-    );
   }
 
-  searchHospitals(event: Event): void {
-    const searchTerm = (event.target as HTMLInputElement).value.toLowerCase();
+  // Show hospital suggestions when field is focused
+  onHospitalInputFocus(): void {
+    // Set filtered hospitals to all hospitals initially
+    this.filteredHospitals = [...this.hospitals];
     this.showHospitalSuggestions = true;
+  }
+
+ 
+
+ // Add these properties to keep track of the display values
+selectedPolicyDisplay: string = '';
+selectedHospitalDisplay: string = '';
+
+selectPolicy(policy: InsurancePolicy): void {
+  if (policy && policy.policyId) {
+    // Update the form control with the ID value
+    this.claimForm.patchValue({
+      policyId: policy.policyId
+    });
     
-    if (!searchTerm) {
-      this.filteredHospitals = [];
-      return;
+    // Update the display value for the search input
+    this.selectedPolicyDisplay = `${policy.policyName} (ID: ${policy.policyId})`;
+    
+    // Find the input element and set its value
+    const inputElement = document.getElementById('policySearchInput') as HTMLInputElement;
+    if (inputElement) {
+      inputElement.value = this.selectedPolicyDisplay;
     }
+    
+    // Hide the suggestions
+    this.showPolicySuggestions = false;
+  }
+}
 
-    this.filteredHospitals = this.hospitals.filter(hospital => 
-      hospital.name.toLowerCase().includes(searchTerm) ||
-      hospital.hospital_id?.toString().includes(searchTerm) ||
-      hospital.location.toLowerCase().includes(searchTerm)
-    );
+selectHospital(hospital: Hospital): void {
+  if (hospital && hospital.hospitalId) {
+    // Update the form control with the ID value
+    this.claimForm.patchValue({
+      hospitalId: hospital.hospitalId
+    });
+    
+    // Update the display value for the search input
+    this.selectedHospitalDisplay = `${hospital.name} (ID: ${hospital.hospitalId})`;
+    
+    // Find the input element and set its value
+    const inputElement = document.getElementById('hospitalSearchInput') as HTMLInputElement;
+    if (inputElement) {
+      inputElement.value = this.selectedHospitalDisplay;
+    }
+    
+    // Hide the suggestions
+    this.showHospitalSuggestions = false;
+  }
+}
+
+// Reset the display values when the form is closed or reset
+closeNewClaimForm(): void {
+  this.showNewClaimForm = false;
+  this.claimForm.reset();
+  this.isSubmitting = false;
+  this.showPolicySuggestions = false;
+  this.showHospitalSuggestions = false;
+  this.selectedPolicyDisplay = '';
+  this.selectedHospitalDisplay = '';
+  
+  // Hide the modal
+  const modalElement = document.getElementById('newClaimModal');
+  if (modalElement) {
+    modalElement.classList.remove('show');
+    modalElement.style.display = 'none';
+    document.body.classList.remove('modal-open');
+    
+    // Remove backdrop
+    const backdrop = document.querySelector('.modal-backdrop');
+    if (backdrop) {
+      document.body.removeChild(backdrop);
+    }
+  }
+}
+
+// Make sure the search functions don't clear the selected values
+searchPolicies(event: Event): void {
+  const searchTerm = (event.target as HTMLInputElement).value.toLowerCase();
+  this.showPolicySuggestions = true;
+  
+  // Don't reset the form value when searching
+  
+  if (!searchTerm) {
+    // If search term is empty, show all policies
+    this.filteredPolicies = [...this.policies];
+    return;
   }
 
-  selectPolicy(policy: InsurancePolicy): void {
-    if (policy.policy_id) {
-      this.claimForm.patchValue({
-        policyId: policy.policy_id
-      });
-      this.showPolicySuggestions = false;
-    }
+  this.filteredPolicies = this.policies.filter(policy => 
+    policy.policyName.toLowerCase().includes(searchTerm) ||
+    policy.policyId?.toString().includes(searchTerm) ||
+    policy.policyType.toLowerCase().includes(searchTerm)
+  );
+}
+
+searchHospitals(event: Event): void {
+  const searchTerm = (event.target as HTMLInputElement).value.toLowerCase();
+  this.showHospitalSuggestions = true;
+  
+  // Don't reset the form value when searching
+  
+  if (!searchTerm) {
+    // If search term is empty, show all hospitals
+    this.filteredHospitals = [...this.hospitals];
+    return;
   }
 
-  selectHospital(hospital: Hospital): void {
-    if (hospital.hospital_id) {
-      this.claimForm.patchValue({
-        hospitalId: hospital.hospital_id
-      });
-      this.showHospitalSuggestions = false;
-    }
-  }
+  this.filteredHospitals = this.hospitals.filter(hospital => 
+    hospital.name.toLowerCase().includes(searchTerm) ||
+    hospital.hospitalId?.toString().includes(searchTerm) ||
+    hospital.location.toLowerCase().includes(searchTerm)
+  );
+}
+// Get policy name for display
+getPolicyName(policyId: number | null | undefined): string {
+  if (policyId === null || policyId === undefined) return 'N/A';
+  
+  const policy = this.policies.find(p => p.policyId === policyId);
+  console.log(`Looking for policy with ID ${policyId}`, policy); // Debug
+  return policy ? policy.policyName : 'N/A';
+}
+
+// Get hospital name for display
+getHospitalName(hospitalId: number | null | undefined): string {
+  if (hospitalId === null || hospitalId === undefined) return 'N/A';
+  
+  const hospital = this.hospitals.find(h => h.hospitalId === hospitalId);
+  console.log(`Looking for hospital with ID ${hospitalId}`, hospital); // Debug
+  return hospital ? hospital.name : 'N/A';
+}
 }
