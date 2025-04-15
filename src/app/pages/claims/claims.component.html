@@ -2,7 +2,7 @@
   <div class="d-flex justify-content-between align-items-center mb-4">
     <h2>Insurance Claims</h2>
     <button class="btn btn-primary" (click)="openNewClaimForm()">
-      <i class="bi bi-plus-circle"></i> Add Claim
+      <i class="bi bi-plus-circle"></i> Raise Claim
     </button>
   </div>
 
@@ -54,37 +54,75 @@
     <div class="modal-dialog">
       <div class="modal-content">
         <div class="modal-header bg-primary text-white">
-          <h5 class="modal-title" id="newClaimModalLabel">Add Insurance Claim</h5>
+          <h5 class="modal-title" id="newClaimModalLabel">Raise Insurance Claim</h5>
           <button type="button" class="btn-close btn-close-white" (click)="closeNewClaimForm()"></button>
         </div>
         <div class="modal-body">
           <form [formGroup]="claimForm" (ngSubmit)="addClaim()">
             <div class="form-group mb-3">
               <label for="policyId" class="form-label">Policy ID <span class="text-danger">*</span></label>
-              <input type="number" 
-                     class="form-control" 
-                     id="policyId" 
-                     formControlName="policyId"
-                     placeholder="Enter policy ID"
-                     [class.is-invalid]="isFieldInvalid('policyId')">
-              <div class="invalid-feedback" *ngIf="isFieldInvalid('policyId')">
-                {{getErrorMessage('policyId')}}
+              <div class="position-relative">
+                <input type="text" 
+                       class="form-control" 
+                       id="policyId" 
+                       formControlName="policyId"
+                       placeholder="Search policy by name or ID"
+                       (input)="searchPolicies($event)"
+                       [class.is-invalid]="isFieldInvalid('policyId')">
+                <div class="invalid-feedback" *ngIf="isFieldInvalid('policyId')">
+                  {{getErrorMessage('policyId')}}
+                </div>
+                <div class="policy-suggestions" *ngIf="filteredPolicies.length > 0 && showPolicySuggestions">
+                  <div class="list-group">
+                    <button type="button" 
+                            class="list-group-item list-group-item-action" 
+                            *ngFor="let policy of filteredPolicies"
+                            (click)="selectPolicy(policy)">
+                      <div class="d-flex justify-content-between align-items-center">
+                        <span>{{policy.policy_name}}</span>
+                        <small class="text-muted">ID: {{policy.policy_id}}</small>
+                      </div>
+                      <small class="text-muted d-block">
+                        Type: {{policy.policy_type | titlecase}} | Coverage: {{policy.coverage | currency}}
+                      </small>
+                    </button>
+                  </div>
+                </div>
               </div>
-              <small class="form-text text-muted">Enter the ID of the policy associated with this claim</small>
+              <small class="form-text text-muted">Search and select a policy for this claim</small>
             </div>
 
             <div class="form-group mb-3">
               <label for="hospitalId" class="form-label">Hospital ID <span class="text-danger">*</span></label>
-              <input type="number" 
-                     class="form-control" 
-                     id="hospitalId" 
-                     formControlName="hospitalId"
-                     placeholder="Enter hospital ID"
-                     [class.is-invalid]="isFieldInvalid('hospitalId')">
-              <div class="invalid-feedback" *ngIf="isFieldInvalid('hospitalId')">
-                {{getErrorMessage('hospitalId')}}
+              <div class="position-relative">
+                <input type="text" 
+                       class="form-control" 
+                       id="hospitalId" 
+                       formControlName="hospitalId"
+                       placeholder="Search hospital by name or ID"
+                       (input)="searchHospitals($event)"
+                       [class.is-invalid]="isFieldInvalid('hospitalId')">
+                <div class="invalid-feedback" *ngIf="isFieldInvalid('hospitalId')">
+                  {{getErrorMessage('hospitalId')}}
+                </div>
+                <div class="hospital-suggestions" *ngIf="filteredHospitals.length > 0 && showHospitalSuggestions">
+                  <div class="list-group">
+                    <button type="button" 
+                            class="list-group-item list-group-item-action" 
+                            *ngFor="let hospital of filteredHospitals"
+                            (click)="selectHospital(hospital)">
+                      <div class="d-flex justify-content-between align-items-center">
+                        <span>{{hospital.name}}</span>
+                        <small class="text-muted">ID: {{hospital.hospital_id}}</small>
+                      </div>
+                      <small class="text-muted d-block">
+                        Location: {{hospital.location}} | Discount: {{hospital.discount}}%
+                      </small>
+                    </button>
+                  </div>
+                </div>
               </div>
-              <small class="form-text text-muted">Enter the ID of the hospital where treatment was received</small>
+              <small class="form-text text-muted">Search and select a hospital for this claim</small>
             </div>
 
             <div class="form-group mb-3">

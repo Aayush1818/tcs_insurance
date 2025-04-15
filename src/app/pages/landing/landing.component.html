@@ -1,0 +1,151 @@
+<div class="landing-container">
+  <!-- Hero Section with Background Image -->
+  <div class="hero-section">
+    <div class="hero-overlay">
+      <h1 class="hero-title">Welcome to TCS Insurance Portal</h1>
+      <p class="hero-subtitle">Protecting what matters most to you</p>
+      <div class="hero-buttons">
+        <a routerLink="/insurance" class="btn btn-primary btn-lg me-3">View Policies</a>
+        <a routerLink="/claims" class="btn btn-outline-light btn-lg">Manage Claims</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main Content Section -->
+  <div class="container mt-5">
+    <div class="row">
+      <!-- Policy Distribution Chart -->
+      <div class="col-md-6 mb-4">
+        <div class="card h-100">
+          <div class="card-header bg-primary text-white">
+            <h3 class="card-title mb-0">Policy Distribution</h3>
+          </div>
+          <div class="card-body">
+            <canvas id="landingChart"></canvas>
+          </div>
+        </div>
+      </div>
+
+      <!-- Policy List -->
+      <div class="col-md-6 mb-4">
+        <div class="card h-100">
+          <div class="card-header bg-primary text-white">
+            <h3 class="card-title mb-0">Available Insurance Policies</h3>
+          </div>
+          <div class="card-body">
+            <div class="table-responsive">
+              <table class="table table-hover">
+                <thead>
+                  <tr>
+                    <th>Policy Name</th>
+                    <th>Type</th>
+                    <th>Coverage</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr *ngFor="let policy of policies">
+                    <td>{{policy.policy_name}}</td>
+                    <td>{{policy.policy_type | titlecase}}</td>
+                    <td>{{policy.coverage | currency}}</td>
+                    <td>
+                      <a routerLink="/insurance" class="btn btn-sm btn-outline-primary">Learn More</a>
+                    </td>
+                  </tr>
+                  <tr *ngIf="policies.length === 0">
+                    <td colspan="4" class="text-center py-3">No policies available</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Features Section -->
+    <div class="row mt-4 mb-5">
+      <div class="col-12 text-center mb-4">
+        <h2>Why Choose TCS Insurance?</h2>
+        <p class="lead">We provide comprehensive coverage tailored to your needs</p>
+      </div>
+      <div class="col-md-4 mb-4">
+        <div class="card h-100">
+          <div class="card-body text-center">
+            <i class="bi bi-shield-check feature-icon"></i>
+            <h4 class="mt-3">Comprehensive Coverage</h4>
+            <p>Our policies offer extensive coverage for various life situations, ensuring you're protected when you need it most.</p>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-4 mb-4">
+        <div class="card h-100">
+          <div class="card-body text-center">
+            <i class="bi bi-cash-stack feature-icon"></i>
+            <h4 class="mt-3">Competitive Premiums</h4>
+            <p>We offer competitive premium rates with flexible payment options to suit your budget.</p>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-4 mb-4">
+        <div class="card h-100">
+          <div class="card-body text-center">
+            <i class="bi bi-headset feature-icon"></i>
+            <h4 class="mt-3">24/7 Customer Support</h4>
+            <p>Our dedicated support team is available around the clock to assist you with any queries or concerns.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Footer Section -->
+  <footer class="footer bg-dark text-white py-5">
+    <div class="container-fluid px-4">
+      <div class="row">
+        <div class="col-md-4 mb-4 mb-md-0">
+          <h5 class="mb-3">Contact Us</h5>
+          <p><i class="bi bi-geo-alt me-2"></i> 123 Insurance Street, Financial District, NY 10004</p>
+          <p><i class="bi bi-telephone me-2"></i> +1 (555) 123-4567</p>
+          <p><i class="bi bi-envelope me-2"></i> support&#64;tcsinsurance.com</p>
+          <div class="social-icons mt-3">
+            <a href="#" class="text-white me-3"><i class="bi bi-facebook"></i></a>
+            <a href="#" class="text-white me-3"><i class="bi bi-twitter"></i></a>
+            <a href="#" class="text-white me-3"><i class="bi bi-linkedin"></i></a>
+            <a href="#" class="text-white"><i class="bi bi-instagram"></i></a>
+          </div>
+        </div>
+        <div class="col-md-4 mb-4 mb-md-0">
+          <h5 class="mb-3">Quick Links</h5>
+          <ul class="list-unstyled">
+            <li class="mb-2"><a routerLink="/insurance" class="text-white text-decoration-none">Insurance Policies</a></li>
+            <li class="mb-2"><a routerLink="/claims" class="text-white text-decoration-none">File a Claim</a></li>
+            <li class="mb-2"><a routerLink="/hospitals" class="text-white text-decoration-none">Network Hospitals</a></li>
+            <li class="mb-2"><a href="#" class="text-white text-decoration-none">Premium Calculator</a></li>
+            <li class="mb-2"><a href="#" class="text-white text-decoration-none">Customer Portal</a></li>
+          </ul>
+        </div>
+        <div class="col-md-4">
+          <h5 class="mb-3">Newsletter</h5>
+          <p>Subscribe to our newsletter for the latest updates and offers.</p>
+          <div class="input-group mb-3">
+            <input type="email" class="form-control" placeholder="Your email address" aria-label="Your email address">
+            <button class="btn btn-primary" type="button">Subscribe</button>
+          </div>
+          <p class="small text-muted">By subscribing, you agree to our Privacy Policy and consent to receive updates from our company.</p>
+        </div>
+      </div>
+      <hr class="my-4">
+      <div class="row">
+        <div class="col-md-6 text-center text-md-start">
+          <p class="mb-0">&copy; 2023 TCS Insurance. All rights reserved.</p>
+        </div>
+        <div class="col-md-6 text-center text-md-end">
+          <a href="#" class="text-white text-decoration-none me-3">Privacy Policy</a>
+          <a href="#" class="text-white text-decoration-none me-3">Terms of Service</a>
+          <a href="#" class="text-white text-decoration-none">Cookie Policy</a>
+        </div>
+      </div>
+    </div>
+  </footer>
+</div> 
